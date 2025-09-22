@@ -1,0 +1,91 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String?
+  email     String?  @unique
+  createdAt DateTime @default(now())
+  sessions  WorkoutSession[]
+  routines  Routine[]
+}
+
+model Exercise {
+  id           Int      @id @default(autoincrement())
+  name         String
+  slug         String   @unique
+  primaryGroup String?  // p. ej. "Espalda", "Pecho", "Pierna", "Hombro", "Bíceps", "Tríceps"
+  equipment    String?  // "Máquina", "Barra", "Mancuernas", "Smith", "Prensa"
+  notes        String?
+  createdAt    DateTime @default(now())
+  routineItems RoutineExercise[]
+  setEntries   SetEntry[]
+}
+
+model Routine {
+  id        Int               @id @default(autoincrement())
+  name      String
+  userId    Int
+  user      User              @relation(fields: [userId], references: [id])
+  weeks     Int               @default(1)
+  days      RoutineDay[]
+  sessions  WorkoutSession[]
+  createdAt DateTime          @default(now())
+}
+
+model RoutineDay {
+  id        Int               @id @default(autoincrement())
+  routineId Int
+  name      String            // "Lunes", "Martes", ...
+  order     Int
+  items     RoutineExercise[]
+  routine   Routine           @relation(fields: [routineId], references: [id])
+}
+
+model RoutineExercise {
+  id           Int      @id @default(autoincrement())
+  routineDayId Int
+  exerciseId   Int
+  order        Int
+  series       Int
+  reps         String   // "12", "12x3", "12-10-8", or "AMRAP"
+  targetWeight Float?   // kg objetivo
+  notes        String?
+  exercise     Exercise @relation(fields: [exerciseId], references: [id])
+  routineDay   RoutineDay @relation(fields:[routineDayId], references:[id])
+}
+
+model WorkoutSession {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  date      DateTime
+  routineId Int?      // si viene de una rutina
+  notes     String?
+  setEntries SetEntry[]
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields:[userId], references:[id])
+  routine   Routine?  @relation(fields:[routineId], references:[id])
+}
+
+model SetEntry {
+  id             Int       @id @default(autoincrement())
+  sessionId      Int
+  exerciseId     Int
+  setNumber      Int
+  repsDone       Int
+  weightKg       Float
+  rpe            Int?      // 1-10
+  notes          String?
+  createdAt      DateTime  @default(now())
+  workoutSession WorkoutSession @relation(fields:[sessionId], references:[id])
+  exercise       Exercise       @relation(fields:[exerciseId], references:[id])
+}
