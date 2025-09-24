@@ -1,10 +1,11 @@
 'use server'
 
-import { prisma } from "@/lib/prisma"
+import { prisma } from "@core/lib/prisma"
 import { revalidatePath } from "next/cache"
 
 interface SetEntryData {
   exerciseId: number
+  setNumber: number
   repsDone: number
   weightKg: number
   rpe?: number
@@ -33,10 +34,10 @@ export async function saveWorkoutSession(data: WorkoutSessionData) {
     },
   })
 
-  const setEntriesToCreate = setEntries.map((set, index) => ({
+  const setEntriesToCreate = setEntries.map((set) => ({
     sessionId: session.id,
     exerciseId: set.exerciseId,
-    setNumber: index + 1,
+    setNumber: set.setNumber,
     repsDone: set.repsDone,
     weightKg: set.weightKg,
     rpe: set.rpe,

@@ -1,21 +1,21 @@
-"use server"
+"use server";
 
-import { prisma } from "@/lib/prisma"
-import { revalidatePath } from "next/cache"
+import { prisma } from "@core/lib/prisma";
+import { revalidatePath } from "next/cache";
 
 export async function createWorkoutSession(data: {
-  userId: number
-  routineId?: number
-  date: Date
-  notes?: string
+  userId: number;
+  routineId?: number;
+  date: Date;
+  notes?: string;
   sets: Array<{
-    exerciseId: number
-    setNumber: number
-    repsDone: number
-    weightKg: number
-    rpe?: number
-    notes?: string
-  }>
+    exerciseId: number;
+    setNumber: number;
+    repsDone: number;
+    weightKg: number;
+    rpe?: number;
+    notes?: string;
+  }>;
 }) {
   try {
     const session = await prisma.workoutSession.create({
@@ -42,13 +42,13 @@ export async function createWorkoutSession(data: {
           },
         },
       },
-    })
+    });
 
-    revalidatePath("/log-workout")
-    return { success: true, session }
+    revalidatePath("/log-workout");
+    return { success: true, session };
   } catch (error) {
-    console.error("Error creating workout session:", error)
-    return { success: false, error: "Failed to create workout session" }
+    console.error("Error creating workout session:", error);
+    return { success: false, error: "Failed to create workout session" };
   }
 }
 
@@ -67,11 +67,13 @@ export async function getRoutineDay(routineId: number, dayId: number) {
           orderBy: { order: "asc" },
         },
       },
-    })
+    });
 
-    return { success: true, routineDay }
+    console.log("routineDay", routineDay)
+
+    return routineDay;
   } catch (error) {
-    console.error("Error fetching routine day:", error)
-    return { success: false, error: "Failed to fetch routine day" }
+    console.error("Error fetching routine day:", error);
+    throw error;
   }
 }

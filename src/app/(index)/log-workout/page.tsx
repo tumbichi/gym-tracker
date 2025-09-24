@@ -1,12 +1,24 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@core/components/ui/card";
+import { Badge } from "@core/components/ui/badge";
 import { Calendar, Dumbbell, Clock } from "lucide-react";
-import { WorkoutSelector } from "@/components/workout-selector";
-import { prisma } from "@/lib/prisma";
-import { database } from "@/lib/database";
+import { WorkoutSelector } from "@core/components/workout-selector";
+import { prisma } from "@core/lib/prisma";
+import { database } from "@core/lib/database";
+import {
+  Exercise,
+  Routine as PrismaRoutine,
+  RoutineDay as PrismaRoutineDay,
+  RoutineExercise as PrismaRoutineExercise,
+  SetEntry,
+} from "@prisma/client";
+import formatDatetime from "@core/lib/utils/formatters/formatDatetime";
 
-async function getRoutines() {
-  return await database.routine.findMany({
+type RoutineExercise = PrismaRoutineExercise & { exercise: Exercise };
+type RoutineDay = PrismaRoutineDay & { items: RoutineExercise[] };
+type Routine = PrismaRoutine & { days: RoutineDay[] };
+
+async function getRoutines(): Promise<Routine[]> {
+  return (await database.routine.findMany({
     include: {
       days: {
         include: {
@@ -21,12 +33,12 @@ async function getRoutines() {
       },
     },
     orderBy: { name: "asc" },
-  });
+  })) as Routine[];
 }
 
 async function getRecentSessions() {
   return await prisma.workoutSession.findMany({
-    take: 5,
+    take: 7,
     include: {
       routine: true,
       setEntries: {
@@ -81,7 +93,7 @@ export default async function LogWorkoutPage() {
                           </Badge>
                         </div>
                         <div className="space-y-2">
-                          {todayWorkout.items.slice(0, 3).map((item) => (
+                          {todayWorkout.items.slice(0, 3).map((item: RoutineExercise) => (
                             <div key={item.id} className="flex items-center justify-between text-sm">
                               <span>{item.exercise.name}</span>
                               <span className="text-muted-foreground">
@@ -130,13 +142,13 @@ export default async function LogWorkoutPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {routines.map((routine) => (
+                {routines.map((routine: Routine) => (
                   <div key={routine.id} className="space-y-3">
                     <h4 className="font-medium">{routine.name}</h4>
                     <div className="grid gap-2 sm:grid-cols-2">
                       {routine.days
-                        .filter((day) => day.items.length > 0)
-                        .map((day) => (
+                        .filter((day: RoutineDay) => day.items.length > 0)
+                        .map((day: RoutineDay) => (
                           <div key={day.id} className="flex items-center justify-between p-3 border rounded-lg">
                             <div>
                               <p className="font-medium text-sm">{day.name}</p>
@@ -195,11 +207,11 @@ export default async function LogWorkoutPage() {
                   <div key={session.id} className="space-y-2">
                     <div className="flex items-center justify-between">
                       <p className="font-medium text-sm">{session.routine?.name || "Sesión Libre"}</p>
-                      <p className="text-xs text-muted-foreground">{new Date(session.date).toLocaleDateString()}</p>
+                      <p className="text-xs text-muted-foreground">{formatDatetime(new Date(session.date))}</p>
                     </div>
                     <div className="text-xs text-muted-foreground">
                       {session.setEntries.length} series •{" "}
-                      {new Set(session.setEntries.map((set) => set.exerciseId)).size} ejercicios
+                      {new Set(session.setEntries.map((set: SetEntry) => set.exerciseId)).size} ejercicios
                     </div>
                     {session.notes && <p className="text-xs text-muted-foreground italic">{session.notes}</p>}
                   </div>

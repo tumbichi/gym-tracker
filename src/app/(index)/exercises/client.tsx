@@ -1,11 +1,11 @@
 'use client'
 
 import { useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@core/components/ui/card"
+import { Button } from "@core/components/ui/button"
+import { Input } from "@core/components/ui/input"
+import { Badge } from "@core/components/ui/badge"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@core/components/ui/table"
 import {
   Dialog,
   DialogContent,
@@ -13,10 +13,10 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
+} from "@core/components/ui/dialog"
 import { Plus, Search, Edit, Trash2 } from "lucide-react"
-import { ExerciseForm } from "@/components/exercise-form"
-import type { Exercise } from "@/lib/db"
+import { ExerciseForm } from "@core/components/exercise-form"
+import type { Exercise } from "@core/lib/db"
 
 interface ExercisesClientProps {
   initialExercises: Exercise[]

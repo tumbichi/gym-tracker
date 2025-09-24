@@ -1,6 +1,6 @@
 "use server"
 
-import { database } from "@/lib/database"
+import { database } from "@core/lib/database"
 import { revalidatePath } from "next/cache"
 
 export async function createExercise(data: {
