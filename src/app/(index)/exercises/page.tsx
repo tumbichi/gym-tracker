@@ -1,4 +1,4 @@
-import { database } from "@/lib/database";
+import { database } from "@core/lib/database";
 import { ExercisesClient } from "./client";
 
 async function getExercises() {

@@ -4,10 +4,10 @@ import { GeistSans } from "geist/font/sans"
 import { GeistMono } from "geist/font/mono"
 import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
-import { ThemeProvider } from "@/components/theme-provider"
+import { ThemeProvider } from "@core/components/theme-provider"
 import { Suspense } from "react"
 
-import { Toaster } from "@/components/ui/sonner"
+import { Toaster } from "@core/components/ui/sonner"
 
 export const metadata: Metadata = {
   title: "Gym Tracker",

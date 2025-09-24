@@ -1,12 +1,12 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@core/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@core/components/ui/select";
+import { Badge } from "@core/components/ui/badge";
 import { BarChart3, TrendingUp, Award, Target } from "lucide-react";
-import { ProgressChart } from "@/components/progress-chart";
-import { VolumeChart } from "@/components/volume-chart";
-import { PersonalRecords } from "@/components/personal-records";
-import { database } from "@/lib/database";
-import { prisma } from "@/lib/prisma";
+import { ProgressChart } from "@core/components/progress-chart";
+import { VolumeChart } from "@core/components/volume-chart";
+import { PersonalRecords } from "@core/components/personal-records";
+import { database } from "@core/lib/database";
+import { prisma } from "@core/lib/prisma";
 
 async function getWorkoutStats() {
   const now = new Date();
@@ -207,16 +207,18 @@ async function getWeeklyVolume() {
   const weeklyVolume: { [key: string]: number } = {};
 
   for (const entry of setEntries) {
-    const date = new Date(entry.workoutSession?.date);
-    const dayOfWeek = date.getDay();
-    const weekStart = new Date(date.setDate(date.getDate() - dayOfWeek));
-    weekStart.setHours(0, 0, 0, 0);
-    const weekKey = weekStart.toISOString().split("T")[0];
+    if (entry.workoutSession?.date) {
+      const date = new Date(entry.workoutSession.date);
+      const dayOfWeek = date.getDay();
+      const weekStart = new Date(date.setDate(date.getDate() - dayOfWeek));
+      weekStart.setHours(0, 0, 0, 0);
+      const weekKey = weekStart.toISOString().split("T")[0];
 
-    if (!weeklyVolume[weekKey]) {
-      weeklyVolume[weekKey] = 0;
+      if (!weeklyVolume[weekKey]) {
+        weeklyVolume[weekKey] = 0;
+      }
+      weeklyVolume[weekKey] += entry.weightKg * entry.repsDone;
     }
-    weeklyVolume[weekKey] += entry.weightKg * entry.repsDone;
   }
 
   const data = Object.entries(weeklyVolume)

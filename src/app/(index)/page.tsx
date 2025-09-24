@@ -1,9 +1,14 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@core/components/ui/card";
+import { Button } from "@core/components/ui/button";
+import { Badge } from "@core/components/ui/badge";
 import { CalendarDays, TrendingUp, Dumbbell, Clock, Play } from "lucide-react";
-import { database } from "@/lib/database";
+import { database } from "@core/lib/database";
 import Link from "next/link";
+import { Exercise, Routine as PrismaRoutine, RoutineDay as PrismaRoutineDay, RoutineExercise as PrismaRoutineExercise, SetEntry } from "@prisma/client";
+
+type RoutineExercise = PrismaRoutineExercise & { exercise: Exercise };
+type RoutineDay = PrismaRoutineDay & { items: RoutineExercise[] };
+type Routine = PrismaRoutine & { days: RoutineDay[] };
 
 async function getDashboardData() {
   // Get workout sessions this week
@@ -22,10 +27,10 @@ async function getDashboardData() {
   });
 
   // Get recent PRs
-  const recentPRs = await database.setEntry.findMany();
+  const recentPRs = await database.setEntry.findMany({ include: { exercise: true, workoutSession: true } });
 
   // Get today's routine
-  const todayRoutine = await database.routine.findMany();
+  const todayRoutine = (await database.routine.findMany()) as Routine[];
 
   return {
     weekSessions,
@@ -112,7 +117,7 @@ export default async function Dashboard() {
             {todayWorkout && todayWorkout.items.length > 0 ? (
               <>
                 <div className="space-y-2">
-                  {todayWorkout.items.slice(0, 3).map((item) => (
+                  {todayWorkout.items.slice(0, 3).map((item: RoutineExercise) => (
                     <div key={item.id} className="flex items-center justify-between">
                       <span className="text-sm font-medium">{item.exercise?.name}</span>
                       <Badge variant="secondary">
@@ -153,7 +158,7 @@ export default async function Dashboard() {
           <CardContent className="space-y-4">
             {data.recentPRs.length > 0 ? (
               <div className="space-y-3">
-                {data.recentPRs.map((pr) => (
+                {data.recentPRs.map((pr: any) => (
                   <div key={pr.id} className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium">{pr.exercise?.name}</p>

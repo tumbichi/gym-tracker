@@ -2,8 +2,8 @@
 
 import type React from "react";
 
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/app-sidebar";
+import { SidebarProvider, SidebarTrigger } from "@core/components/ui/sidebar";
+import { AppSidebar } from "@core/components/app-sidebar";
 import { BarChart3, Calendar, Dumbbell, Home, PlusCircle } from "lucide-react";
 import { usePathname } from "next/navigation";
 

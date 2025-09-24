@@ -1,6 +1,6 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@core/components/ui/card";
+import { Button } from "@core/components/ui/button";
+import { Badge } from "@core/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -8,10 +8,10 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
+} from "@core/components/ui/dialog";
 import { Plus, Calendar, Edit, Trash2, Play } from "lucide-react";
-import { RoutineForm } from "@/components/routine-form";
-import { prisma } from "@/lib/prisma";
+import { RoutineForm } from "@core/components/routine-form";
+import { prisma } from "@core/lib/prisma";
 import Link from "next/link";
 
 async function getRoutines() {
