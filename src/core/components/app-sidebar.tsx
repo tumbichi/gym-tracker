@@ -1,4 +1,4 @@
-import { Calendar, Dumbbell, Home, BarChart3, Settings, PlusCircle, Activity } from "lucide-react"
+import { Calendar, Dumbbell, Home, BarChart3, Settings, PlusCircle, Activity } from "lucide-react";
 
 import {
   Sidebar,
@@ -11,8 +11,9 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@core/components/ui/sidebar"
-import { Button } from "@core/components/ui/button"
+} from "@core/components/ui/sidebar";
+import { Button } from "@core/components/ui/button";
+import Link from "next/link";
 
 // Menu items
 const items = [
@@ -46,7 +47,7 @@ const items = [
     url: "/settings",
     icon: Settings,
   },
-]
+];
 
 export function AppSidebar() {
   return (
@@ -65,10 +66,10 @@ export function AppSidebar() {
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <a href={item.url}>
+                    <Link href={item.url}>
                       <item.icon />
                       <span>{item.title}</span>
-                    </a>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -85,5 +86,5 @@ export function AppSidebar() {
         </div>
       </SidebarFooter>
     </Sidebar>
-  )
+  );
 }
