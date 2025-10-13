@@ -1,110 +1,37 @@
-import { SidebarProvider, SidebarTrigger } from "@core/components/ui/sidebar";
-import { AppSidebar } from "@core/components/app-sidebar";
-import { Card, CardContent, CardHeader, CardTitle } from "@core/components/ui/card";
-import { Button } from "@core/components/ui/button";
-import { Badge } from "@core/components/ui/badge";
-import { Separator } from "@core/components/ui/separator";
-import { Calendar, ArrowLeft, Play, Edit } from "lucide-react";
-import { prisma } from "@core/lib/prisma";
-import Link from "next/link";
-import { notFound } from "next/navigation";
+'use client';
 
-async function getRoutine(id: string) {
-  const routine = await prisma.routine.findUnique({
-    where: { id: Number.parseInt(id) },
-    include: {
-      days: {
-        include: {
-          items: {
-            include: {
-              exercise: true,
-            },
-            orderBy: { order: "asc" },
-          },
-        },
-        orderBy: { order: "asc" },
-      },
-    },
-  });
+import { useState, useEffect } from 'react';
+import { getRoutineById, getAllExercises } from "@modules/routines/actions/routines.actions";
+import RoutineEditor from "@modules/routines/features/routine-editor.feature";
+import type { Exercise } from '@prisma/client';
 
-  if (!routine) {
-    notFound();
-  }
-
-  return routine;
+// Helper to get initial data
+async function getInitialData(routineId: number) {
+  const routine = await getRoutineById(routineId);
+  const exercises = await getAllExercises();
+  return { routine, exercises };
 }
 
-export default async function RoutineDetailPage({ params }: { params: { id: string } }) {
-  const routine = await getRoutine(params.id);
+export default function RoutineDetailPage({ params }: { params: { id: string } }) {
+  const [routine, setRoutine] = useState<any>(null);
+  const [exercises, setExercises] = useState<Exercise[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  return (
-    <div className="flex-1 p-6 space-y-6">
-      {/* Routine Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">{routine.name}</h2>
-          <p className="text-muted-foreground">
-            Rutina de {routine.weeks} semana{routine.weeks > 1 ? "s" : ""} •{" "}
-            {routine.days.filter((day) => day.items.length > 0).length} días activos
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button>
-            <Play className="w-4 h-4 mr-2" />
-            Comenzar Entrenamiento
-          </Button>
-          <Button variant="outline" className="bg-transparent">
-            <Edit className="w-4 h-4 mr-2" />
-            Editar Rutina
-          </Button>
-        </div>
-      </div>
+  useEffect(() => {
+    const routineId = Number.parseInt(params.id);
+    if (isNaN(routineId)) return;
 
-      {/* Days Grid */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        {routine.days.map((day) => (
-          <Card key={day.id}>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span>{day.name}</span>
-                <Badge variant={day.items.length > 0 ? "default" : "secondary"}>
-                  {day.items.length} ejercicio{day.items.length !== 1 ? "s" : ""}
-                </Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {day.items.length > 0 ? (
-                <div className="space-y-4">
-                  {day.items.map((item, index) => (
-                    <div key={item.id}>
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <h4 className="font-medium">{item.exercise.name}</h4>
-                          <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
-                            <span>{item.series} series</span>
-                            <span>{item.reps} reps</span>
-                            {item.targetWeight && <span>{item.targetWeight} kg</span>}
-                          </div>
-                          {item.notes && <p className="mt-1 text-sm text-muted-foreground">{item.notes}</p>}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline">{item.exercise.primaryGroup}</Badge>
-                        </div>
-                      </div>
-                      {index < day.items.length - 1 && <Separator className="mt-4" />}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="py-8 text-center text-muted-foreground">
-                  <Calendar className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                  <p>Día de descanso</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    </div>
-  );
+    getInitialData(routineId).then(data => {
+      setRoutine(data.routine);
+      setExercises(data.exercises);
+      setLoading(false);
+    });
+  }, [params.id]);
+
+  if (loading) {
+    return <div>Cargando...</div>; // Replace with a proper loader
+  }
+
+  // For now, we directly render the editor. We can switch between detail and editor later.
+  return <RoutineEditor routine={routine} allExercises={exercises} onExercisesUpdate={setExercises} />;
 }

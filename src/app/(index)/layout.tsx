@@ -6,6 +6,7 @@ import { SidebarProvider, SidebarTrigger } from "@core/components/ui/sidebar";
 import { AppSidebar } from "@core/components/app-sidebar";
 import { BarChart3, Calendar, Dumbbell, Home, PlusCircle } from "lucide-react";
 import { usePathname } from "next/navigation";
+import Header from "@core/components/header";
 
 const appRoutes = [
   { pathname: "/", label: "Dashboard", icon: Home },
@@ -22,31 +23,16 @@ export default function AppLayout({
 }>) {
   const pathname = usePathname();
 
-  const Header = () => {
-    const route = appRoutes.find((route) => route.pathname === pathname);
-
-    if (!route) {
-      return null;
-    }
-
-    const { icon: Icon, label } = route;
-
-    return (
-      <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-        <SidebarTrigger className="-ml-1" />
-        <div className="flex items-center gap-2">
-          <Icon className="h-5 w-5" />
-          <h1 className="text-lg font-semibold">{label}</h1>
-        </div>
-      </header>
-    );
-  };
+  const route = appRoutes.find((route) => {
+    console.log("route.pathname", route.label);
+    return route.pathname === pathname;
+  });
 
   return (
     <SidebarProvider>
       <AppSidebar />
       <main className="flex-1 flex flex-col">
-        <Header />
+        {route ? <Header icon={route.icon} title={route.label} /> : null}
         {children}
       </main>
     </SidebarProvider>

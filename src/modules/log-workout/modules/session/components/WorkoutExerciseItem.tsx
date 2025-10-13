@@ -4,9 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@core/components/ui/ca
 import { Input } from "@core/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@core/components/ui/select";
 import { WorkoutExercise } from "@core/types";
-import { ArrowUp, ArrowDown, Trash2, Check, X, Minus, Plus } from "lucide-react";
-import React from "react";
+import { NumberInputStepper } from "@core/components/ui/number-input-stepper";
 import { useWorkoutSessionActions } from "../contexts/WorkoutSessionContext";
+import { ArrowDown, ArrowUp, Check, Trash2, X } from "lucide-react";
 
 interface WorkoutExerciseItemProps {
   exercise: WorkoutExercise;
@@ -33,7 +33,7 @@ function WorkoutExerciseItem({ exercise, exerciseIndex, isLastItem }: WorkoutExe
               variant="ghost"
               size="icon"
               onClick={() => moveExercise(exerciseIndex, "up")}
-              disabled={true}
+              disabled={exerciseIndex === 0}
             >
               <ArrowUp className="w-4 h-4" />
             </Button>
@@ -82,77 +82,23 @@ function WorkoutExerciseItem({ exercise, exerciseIndex, isLastItem }: WorkoutExe
             <div className="space-y-4">
               <div>
                 <label className="block mb-2 text-sm font-medium text-muted-foreground">Peso (kg)</label>
-                <div className="flex items-center gap-1">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => adjustWeight(exercise.id, set.id, -2.5)}
-                    className="p-0 text-lg font-bold h-14 w-14 shrink-0"
-                  >
-                    <Minus className="w-5 h-5" />
-                  </Button>
-                  <div className="relative flex-1">
-                    <Input
-                      type="number"
-                      step="0.5"
-                      value={set.weightKg}
-                      onChange={(e) =>
-                        updateSet(exercise.id, set.id, {
-                          weightKg: Number.parseFloat(e.target.value) || 0,
-                        })
-                      }
-                      className="text-2xl font-bold text-center border-2 h-14 bg-background"
-                    />
-                    <span className="absolute text-sm font-normal -translate-y-1/2 right-3 top-1/2 text-muted-foreground">
-                      kg
-                    </span>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => adjustWeight(exercise.id, set.id, 2.5)}
-                    className="p-0 text-lg font-bold h-14 w-14 shrink-0"
-                  >
-                    <Plus className="w-5 h-5" />
-                  </Button>
-                </div>
+                <NumberInputStepper
+                  value={set.weightKg}
+                  onChange={(value) => updateSet(exercise.id, set.id, { weightKg: value })}
+                  step={2.5}
+                  min={0}
+                  suffix="kg"
+                />
               </div>
 
               <div>
                 <label className="block mb-2 text-sm font-medium text-muted-foreground">Repeticiones</label>
-                <div className="flex items-center gap-1">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => adjustReps(exercise.id, set.id, -1)}
-                    className="p-0 text-lg font-bold h-14 w-14 shrink-0"
-                  >
-                    <Minus className="w-5 h-5" />
-                  </Button>
-                  <div className="relative flex-1">
-                    <Input
-                      type="number"
-                      value={set.repsDone}
-                      onChange={(e) =>
-                        updateSet(exercise.id, set.id, {
-                          repsDone: Number.parseInt(e.target.value) || 0,
-                        })
-                      }
-                      className="text-2xl font-bold text-center border-2 h-14 bg-background"
-                    />
-                    <span className="absolute text-sm font-normal -translate-y-1/2 right-3 top-1/2 text-muted-foreground">
-                      reps
-                    </span>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => adjustReps(exercise.id, set.id, 1)}
-                    className="p-0 text-lg font-bold h-14 w-14 shrink-0"
-                  >
-                    <Plus className="w-5 h-5" />
-                  </Button>
-                </div>
+                <NumberInputStepper
+                  value={set.repsDone}
+                  onChange={(value) => updateSet(exercise.id, set.id, { repsDone: value })}
+                  min={0}
+                  suffix="reps"
+                />
               </div>
             </div>
 

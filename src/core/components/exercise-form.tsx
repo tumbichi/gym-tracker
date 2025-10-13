@@ -9,8 +9,8 @@ import { Textarea } from "@core/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@core/components/ui/select"
 import { DialogClose } from "@core/components/ui/dialog"
 import { createExercise, updateExercise } from "@app/actions/exercises"
-import type { Exercise } from "@core/lib/db"
 import { toast } from "sonner"
+import { Loader2 } from 'lucide-react';
 
 interface ExerciseFormProps {
   exercise?: Partial<Exercise>
@@ -39,41 +39,49 @@ export function ExerciseForm({ exercise, onSuccess, onFormSubmit }: ExerciseForm
     equipment: exercise?.equipment || "",
     notes: exercise?.notes || "",
   })
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
+    setIsLoading(true);
 
-    const slug = formData.name
-      .toLowerCase()
-      .replace(/\s+/g, "-")
-      .replace(/[^\w-]/g, "")
+    try {
+      const slug = formData.name
+        .toLowerCase()
+        .replace(/\s+/g, "-")
+        .replace(/[^\w-]/g, "");
 
-    if (exercise?.id) {
-      const result = await updateExercise(exercise.id, {
-        ...formData,
-        slug,
-      })
-      if (result.success) {
-        toast.success("Ejercicio actualizado con éxito")
-      } else {
-        toast.error(result.error)
-      }
-    } else {
-      const result = await createExercise({
-        ...formData,
-        slug,
-      })
-      if (result.success && result.exercise) {
-        toast.success("Ejercicio creado con éxito")
-        if (onSuccess) {
-          onSuccess(result.exercise)
+      if (exercise?.id) {
+        const result = await updateExercise(exercise.id, {
+          ...formData,
+          slug,
+        });
+        if (result.success) {
+          toast.success("Ejercicio actualizado con éxito");
+        } else {
+          toast.error(result.error);
         }
       } else {
-        toast.error(result.error)
+        const result = await createExercise({
+          ...formData,
+          slug,
+        });
+        if (result.success && result.exercise) {
+          toast.success("Ejercicio creado con éxito");
+          if (onSuccess) {
+            onSuccess(result.exercise);
+          }
+        } else {
+          toast.error(result.error);
+        }
       }
-    }
-    if (onFormSubmit) {
-      onFormSubmit();
+      if (onFormSubmit) {
+        onFormSubmit();
+      }
+    } catch (error) {
+      toast.error("Ocurrió un error inesperado.");
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -144,7 +152,13 @@ export function ExerciseForm({ exercise, onSuccess, onFormSubmit }: ExerciseForm
             Cancelar
           </Button>
         </DialogClose>
-        <Button type="submit">{exercise?.id ? "Actualizar" : "Crear"} Ejercicio</Button>
+        <Button type="button" onClick={handleSubmit} disabled={isLoading}>
+          {isLoading ? (
+            <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creando...</>
+          ) : (
+            exercise?.id ? "Actualizar" : "Crear"
+          )} Ejercicio
+        </Button>
       </div>
     </form>
   )

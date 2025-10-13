@@ -140,8 +140,8 @@ async function main() {
     data: {
       items: {
         create: [
-          { exerciseId: ex("pecho-inclinado").id, order: 1, series: 4, reps: "12-12-10-8", targetWeight: 0 },
-          { exerciseId: ex("pecho-plano").id, order: 2, series: 4, reps: "12-12-10-8", targetWeight: 0 },
+          { exerciseId: ex("pecho-inclinado").id, order: 1, series: 4, reps: "12-12-10-8", targetWeight: 20 },
+          { exerciseId: ex("pecho-plano").id, order: 2, series: 4, reps: "12-12-10-8", targetWeight: 20 },
           { exerciseId: ex("apertura-maquina").id, order: 3, series: 4, reps: "12-12-10-8", targetWeight: 20 },
           { exerciseId: ex("pecho-hammer").id, order: 4, series: 4, reps: "12-12-12-11", targetWeight: 10 },
           { exerciseId: ex("press-frances-mancuernas").id, order: 5, series: 3, reps: "12-12-12", targetWeight: 5 },
