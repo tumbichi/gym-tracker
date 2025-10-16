@@ -15,7 +15,7 @@ interface RoutineDayCardProps {
   onDayItemChange: (itemIndex: number, field: string, value: any) => void;
   onAddExercise: () => void;
   onRemoveExercise: (itemIndex: number) => void;
-  onMoveExercise: (itemIndex: number, direction: "up" | "down") => void;
+  onMoveExercise: (itemIndex: number, direction: "up" | "down") => void; // New prop
   onCreateExercise: (name: string, itemIndex: number) => void;
 }
 
@@ -26,7 +26,7 @@ export function RoutineDayCard({
   onDayItemChange,
   onAddExercise,
   onRemoveExercise,
-  onMoveExercise,
+  onMoveExercise, // New prop
   onCreateExercise,
 }: RoutineDayCardProps) {
   return (
@@ -42,14 +42,15 @@ export function RoutineDayCard({
       <CardContent className="pt-4 space-y-2">
         {day.items.map((item, itemIndex) => (
           <RoutineExerciseItem
-            key={item.order} // Use a more stable key
+            key={item.order} // Use order for stable key
             item={item}
             itemIndex={itemIndex}
-            totalItems={day.items.length}
+            isFirst={itemIndex === 0}
+            isLast={itemIndex === day.items.length - 1}
             allExercises={allExercises}
             onItemChange={(field, value) => onDayItemChange(itemIndex, field, value)}
             onRemove={() => onRemoveExercise(itemIndex)}
-            onMove={(direction) => onMoveExercise(itemIndex, direction)}
+            onMove={(direction) => onMoveExercise(itemIndex, direction)} // Pass handler
             onCreateExercise={(name) => onCreateExercise(name, itemIndex)}
           />
         ))}
