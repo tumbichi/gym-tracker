@@ -1,6 +1,5 @@
 "use server";
 
-import { database } from "@core/lib/database";
 import { prisma } from "@core/lib/prisma";
 import {
   Exercise,
@@ -22,7 +21,7 @@ export type RecentSession = PrismaWorkoutSession & {
 
 // Section: Data Fetching Functions
 export async function getRoutines(): Promise<Routine[]> {
-  return (await database.routine.findMany({
+  return (await prisma.routine.findMany({
     include: {
       days: {
         include: {

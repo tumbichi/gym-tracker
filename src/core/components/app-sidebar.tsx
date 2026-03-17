@@ -54,8 +54,8 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarHeader className="border-b border-sidebar-border">
         <div className="flex items-center gap-2 px-4 py-2">
-          <Activity className="h-6 w-6 text-sidebar-primary" />
-          <span className="font-semibold text-sidebar-foreground">Gym Tracker</span>
+          {/* <Activity className="h-6 w-6 text-sidebar-primary" /> */}
+          <span className="font-medium text-sidebar-foreground text-xl">g<span className="font-extralight">fyt</span></span>
         </div>
       </SidebarHeader>
       <SidebarContent>

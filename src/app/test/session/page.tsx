@@ -1,5 +1,5 @@
+import { prisma } from "@core/lib/prisma";
 import { WorkoutSessionClient, WorkoutExercise } from "@modules/log-workout/modules/session/features/client";
-import { database } from "@core/lib/database"
 // import { WorkoutSessionClient, WorkoutExercise } from "./client"
 import { Exercise, Routine as PrismaRoutine, RoutineDay as PrismaRoutineDay, RoutineExercise as PrismaRoutineExercise } from "@prisma/client"
 
@@ -7,39 +7,53 @@ type RoutineExercise = PrismaRoutineExercise & { exercise: Exercise };
 type RoutineDay = PrismaRoutineDay & { items: RoutineExercise[] };
 type Routine = PrismaRoutine & { days: RoutineDay[] };
 
-function getTargetRepsForSet(repsString: string, setNumber: number): number {
-  if (!repsString) return 0;
-  if (repsString.toLowerCase() === 'amrap') return 0;
+function getTargetRepsForSet(repsJson: string, setNumber: number): number {
+  if (!repsJson) return 0;
 
-  const parts = repsString.split('-').map(s => s.trim());
+  try {
+    const repsArray = JSON.parse(repsJson);
+    if (!Array.isArray(repsArray)) return 0;
 
-  if (parts.length > 1) {
-    // Format "12-10-8"
     const setIndex = setNumber - 1;
-    if (setIndex < parts.length) {
-      const parsed = parseInt(parts[setIndex], 10);
-      return isNaN(parsed) ? 0 : parsed;
-    } else {
+    if (setIndex < repsArray.length) {
+      const reps = repsArray[setIndex];
+      return typeof reps === 'number' ? reps : 0;
+    } else if (repsArray.length > 0) {
       // If setNumber is out of bounds, use the last one
-      const lastParsed = parseInt(parts[parts.length - 1], 10);
-      return isNaN(lastParsed) ? 0 : lastParsed;
+      const lastReps = repsArray[repsArray.length - 1];
+      return typeof lastReps === 'number' ? lastReps : 0;
     }
-  }
 
-  const singleValueParts = repsString.split('x').map(s => s.trim());
-  if (singleValueParts.length > 1) {
-    // Format "12x3"
-    const parsed = parseInt(singleValueParts[0], 10);
+    return 0;
+  } catch (e) {
+    // Fallback for old string formats if any exist, or invalid JSON
+    if (repsJson.toLowerCase() === 'amrap') return 0;
+
+    const parts = repsJson.split('-').map(s => s.trim());
+    if (parts.length > 1) {
+      const setIndex = setNumber - 1;
+      if (setIndex < parts.length) {
+        const parsed = parseInt(parts[setIndex], 10);
+        return isNaN(parsed) ? 0 : parsed;
+      } else {
+        const lastParsed = parseInt(parts[parts.length - 1], 10);
+        return isNaN(lastParsed) ? 0 : lastParsed;
+      }
+    }
+
+    const singleValueParts = repsJson.split('x').map(s => s.trim());
+    if (singleValueParts.length > 1) {
+      const parsed = parseInt(singleValueParts[0], 10);
+      return isNaN(parsed) ? 0 : parsed;
+    }
+    
+    const parsed = parseInt(repsJson, 10);
     return isNaN(parsed) ? 0 : parsed;
   }
-  
-  // Format "12"
-  const parsed = parseInt(repsString, 10);
-  return isNaN(parsed) ? 0 : parsed;
 }
 
 async function getRoutineDay(routineId: number, dayId: number): Promise<WorkoutExercise[]> {
-  const routineDay = await database.routine.findFirst({
+  const routineDay = await prisma.routine.findFirst({
     where: {
       id: routineId,
       days: {
@@ -78,26 +92,24 @@ async function getRoutineDay(routineId: number, dayId: number): Promise<WorkoutE
     name: item.exercise.name,
     targetSeries: item.series,
     targetReps: item.reps,
-    targetWeight: item.targetWeight || undefined,
-    notes: item.notes || undefined,
-    sets: Array.from({ length: item.series }, (_, i) => ({
+     notes: item.notes || undefined,
+     sets: Array.from({ length: item.series }, (_, i) => ({
       id: `set-${item.exercise.id}-${i + 1}`,
       exerciseId: item.exercise.id,
       exerciseName: item.exercise.name,
-      setNumber: i + 1,
-      targetReps: item.reps,
-      targetWeight: item.targetWeight || undefined,
-      repsDone: getTargetRepsForSet(item.reps, i + 1),
-      weightKg: item.targetWeight || 0,
-      rpe: undefined,
-      notes: "",
-      completed: false,
-    })),
+       setNumber: i + 1,
+       targetReps: item.reps,
+       repsDone: getTargetRepsForSet(item.reps, i + 1),
+       weightKg: 0,
+       rpe: undefined,
+       notes: "",
+       completed: false,
+     })),
   }))
 }
 
 async function getAllExercises(): Promise<Exercise[]> {
-  return await database.exercise.findMany();
+  return await prisma.exercise.findMany();
 }
 
 export default async function WorkoutSessionPage({ searchParams }: { searchParams: { routineId?: string; dayId?: string } }) {

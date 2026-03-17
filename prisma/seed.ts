@@ -105,13 +105,13 @@ async function main() {
     data: {
       items: {
         create: [
-          { exerciseId: ex("jalon-pecho").id, order: 1, series: 4, reps: "12-12-10-8", targetWeight: 40 },
-          { exerciseId: ex("remo-t").id, order: 2, series: 4, reps: "12-12-10-8", targetWeight: 15 },
-          { exerciseId: ex("remo-cerrado").id, order: 3, series: 4, reps: "12-12-10-8", targetWeight: 30 },
-          { exerciseId: ex("biceps-barra-w").id, order: 4, series: 4, reps: "12-12-10-8", targetWeight: 15 },
-          { exerciseId: ex("biceps-martillo").id, order: 5, series: 4, reps: "12-12-10-8", targetWeight: 5 },
-          { exerciseId: ex("biceps-sentado").id, order: 6, series: 4, reps: "12-12-10-8", targetWeight: 5 },
-          { exerciseId: ex("abdominales-cortos").id, order: 7, series: 3, reps: "20", targetWeight: 0 },
+          { exerciseId: ex("jalon-pecho").id, order: 1, series: 4, reps: "[12,12,10,8]" },
+          { exerciseId: ex("remo-t").id, order: 2, series: 4, reps: "[12,12,10,8]" },
+          { exerciseId: ex("remo-cerrado").id, order: 3, series: 4, reps: "[12,12,10,8]" },
+          { exerciseId: ex("biceps-barra-w").id, order: 4, series: 4, reps: "[12,12,10,8]" },
+          { exerciseId: ex("biceps-martillo").id, order: 5, series: 4, reps: "[12,12,10,8]" },
+          { exerciseId: ex("biceps-sentado").id, order: 6, series: 4, reps: "[12,12,10,8]" },
+          { exerciseId: ex("abdominales-cortos").id, order: 7, series: 3, reps: "[20]" },
         ],
       },
     },
@@ -123,12 +123,12 @@ async function main() {
     data: {
       items: {
         create: [
-          { exerciseId: ex("hack").id, order: 1, series: 4, reps: "12-12-10-8", targetWeight: 10 },
-          { exerciseId: ex("prensa-vieja").id, order: 2, series: 4, reps: "12-12-10-8", targetWeight: 80 },
-          { exerciseId: ex("sillon-cuadriceps").id, order: 3, series: 4, reps: "12-12-10-8", targetWeight: 25 },
-          { exerciseId: ex("camilla-femoral").id, order: 4, series: 4, reps: "12-12-10-8", targetWeight: 20 },
-          { exerciseId: ex("adductor-maquina").id, order: 5, series: 3, reps: "15", targetWeight: 40 },
-          { exerciseId: ex("gemelos-prensa").id, order: 6, series: 3, reps: "20", targetWeight: 50 },
+          { exerciseId: ex("hack").id, order: 1, series: 4, reps: "[12,12,10,8]" },
+          { exerciseId: ex("prensa-vieja").id, order: 2, series: 4, reps: "[12,12,10,8]" },
+          { exerciseId: ex("sillon-cuadriceps").id, order: 3, series: 4, reps: "[12,12,10,8]" },
+          { exerciseId: ex("camilla-femoral").id, order: 4, series: 4, reps: "[12,12,10,8]" },
+          { exerciseId: ex("adductor-maquina").id, order: 5, series: 3, reps: "[15]" },
+          { exerciseId: ex("gemelos-prensa").id, order: 6, series: 3, reps: "[20]" },
         ],
       },
     },
@@ -140,13 +140,13 @@ async function main() {
     data: {
       items: {
         create: [
-          { exerciseId: ex("pecho-inclinado").id, order: 1, series: 4, reps: "12-12-10-8", targetWeight: 0 },
-          { exerciseId: ex("pecho-plano").id, order: 2, series: 4, reps: "12-12-10-8", targetWeight: 0 },
-          { exerciseId: ex("apertura-maquina").id, order: 3, series: 4, reps: "12-12-10-8", targetWeight: 20 },
-          { exerciseId: ex("pecho-hammer").id, order: 4, series: 4, reps: "12-12-12-11", targetWeight: 10 },
-          { exerciseId: ex("press-frances-mancuernas").id, order: 5, series: 3, reps: "12-12-12", targetWeight: 5 },
-          { exerciseId: ex("triceps-polea-barra").id, order: 6, series: 4, reps: "12-12-9-7", targetWeight: 15 },
-          { exerciseId: ex("triceps-mancuerna").id, order: 7, series: 3, reps: "12-12-12", targetWeight: 7.5 },
+          { exerciseId: ex("pecho-inclinado").id, order: 1, series: 4, reps: "[12,12,10,8]" },
+          { exerciseId: ex("pecho-plano").id, order: 2, series: 4, reps: "[12,12,10,8]" },
+          { exerciseId: ex("apertura-maquina").id, order: 3, series: 4, reps: "[12,12,10,8]" },
+          { exerciseId: ex("pecho-hammer").id, order: 4, series: 4, reps: "[12,12,12,11]" },
+          { exerciseId: ex("press-frances-mancuernas").id, order: 5, series: 3, reps: "[12,12,12]" },
+          { exerciseId: ex("triceps-polea-barra").id, order: 6, series: 4, reps: "[12,12,9,7]" },
+          { exerciseId: ex("triceps-mancuerna").id, order: 7, series: 3, reps: "[12,12,12]" },
         ],
       },
     },
@@ -158,12 +158,12 @@ async function main() {
     data: {
       items: {
         create: [
-          { exerciseId: ex("press-militar-maquina").id, order: 1, series: 4, reps: "12-12-10-8", targetWeight: 10 },
-          { exerciseId: ex("vuelos-mancuernas").id, order: 2, series: 4, reps: "12-12-10-8", targetWeight: 5 },
-          { exerciseId: ex("press-frontal-polea").id, order: 3, series: 4, reps: "12-12-10-8", targetWeight: 10 },
-          { exerciseId: ex("facepull-polea").id, order: 4, series: 4, reps: "12-12-10-10", targetWeight: 10 },
-          { exerciseId: ex("elevacion-hombros").id, order: 5, series: 4, reps: "12-12-10-8", targetWeight: 50 },
-          { exerciseId: ex("abdominales-cortos").id, order: 6, series: 3, reps: "20", targetWeight: 0 },
+          { exerciseId: ex("press-militar-maquina").id, order: 1, series: 4, reps: "[12,12,10,8]" },
+          { exerciseId: ex("vuelos-mancuernas").id, order: 2, series: 4, reps: "[12,12,10,8]" },
+          { exerciseId: ex("press-frontal-polea").id, order: 3, series: 4, reps: "[12,12,10,8]" },
+          { exerciseId: ex("facepull-polea").id, order: 4, series: 4, reps: "[12,12,10,10]" },
+          { exerciseId: ex("elevacion-hombros").id, order: 5, series: 4, reps: "[12,12,10,8]" },
+          { exerciseId: ex("abdominales-cortos").id, order: 6, series: 3, reps: "[20]" },
         ],
       },
     },

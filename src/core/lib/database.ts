@@ -2,7 +2,7 @@ import { Prisma, PrismaClient, Routine } from "@prisma/client";
 import { db as mockDb } from "./db";
 
 // Try to create Prisma client, fall back to mock if it fails
-let prismaClient: PrismaClient | null = null;
+export let prismaClient: PrismaClient | null = null;
 
 try {
   prismaClient = new PrismaClient();
@@ -192,5 +192,71 @@ export const database = {
       const results = await mockDb.routine.findMany();
       return results.length > 0 ? results[0] : null;
     },
+    findUnique: async (args: Prisma.RoutineFindUniqueArgs) => {
+      try {
+        if (prismaClient) {
+          return await prismaClient.routine.findUnique(args);
+        }
+      } catch (error) {
+        console.log("Using mock data for routine");
+      }
+      return mockDb.routine.findUnique({ where: { id: args.where?.id ?? 1 } });
+    },
+
+    create: async (args: Prisma.RoutineCreateArgs) => {
+      try {
+        if (prismaClient) {
+          return await prismaClient.routine.create(args);
+        }
+      } catch (error) {
+        console.log("Using mock data for routine creation");
+      }
+      return mockDb.routine.create({ data: args.data });
+    },
+
+    update: async (args: Prisma.RoutineUpdateArgs) => {
+      try {
+        return await prismaClient?.routine.update(args);
+      } catch (error) {
+        console.log("Using mock data for routine update");
+      }
+    },
+    delete: async (args: Prisma.RoutineDeleteArgs) => {
+      try {
+        return await prismaClient?.routine.delete(args);
+      } catch (error) {
+        console.log("Using mock data for routine deletion");
+      }
+    },
   },
+
+  routineDay: {
+    findMany: async (args: Prisma.RoutineDayFindManyArgs) => {
+      try {
+        return await prismaClient?.routineDay.findMany(args);
+      } catch (error) {
+        console.log("Using mock data for routine days");
+      }
+      return mockDb.routineDay.findMany();
+    },
+    deleteMany: async (args: Prisma.RoutineDayDeleteManyArgs) => {
+      try {
+        return await prismaClient?.routineDay.deleteMany(args);
+      } catch (error) {
+        console.log("Using mock data for routine day deletion");
+      }
+    },
+  },
+
+  routineExercise: {
+    deleteMany: async (args: Prisma.RoutineExerciseDeleteManyArgs) => {
+      try {
+        return await prismaClient?.routineExercise.deleteMany(args);
+      } catch (error) {
+        console.log("Using mock data for routine exercise deletion");
+      }
+    },
+  },
+
+  $transaction: prismaClient ? prismaClient.$transaction : undefined,
 };

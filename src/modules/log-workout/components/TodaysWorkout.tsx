@@ -41,7 +41,6 @@ export default function TodaysWorkout({ routines }: TodaysWorkoutProps) {
                       <span>{item.exercise.name}</span>
                       <span className="text-muted-foreground">
                         {item.series} x {item.reps}
-                        {item.targetWeight && ` @ ${item.targetWeight}kg`}
                       </span>
                     </div>
                   ))}

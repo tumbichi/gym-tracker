@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@core
 import { Button } from "@core/components/ui/button";
 import { Badge } from "@core/components/ui/badge";
 import { CalendarDays, TrendingUp, Dumbbell, Clock, Play } from "lucide-react";
-import { database } from "@core/lib/database";
+import { prisma } from "@core/lib/prisma";
 import Link from "next/link";
 import { Exercise, Routine as PrismaRoutine, RoutineDay as PrismaRoutineDay, RoutineExercise as PrismaRoutineExercise, SetEntry } from "@prisma/client";
 
@@ -12,32 +12,45 @@ type Routine = PrismaRoutine & { days: RoutineDay[] };
 
 async function getDashboardData() {
   // Get workout sessions this week
-  const weekSessions = await database.workoutSession.count();
+  const weekSessions = await prisma.workoutSession.count();
 
   // Get total volume this month
-  const monthVolumeResult = await database.setEntry.aggregate({
+  const monthVolumeResult = await prisma.setEntry.aggregate({
     _sum: {
       weightKg: true,
     },
   });
 
   // Get unique exercises this month
-  const uniqueExercisesResult = await database.setEntry.groupBy({
+  const uniqueExercisesResult = await prisma.setEntry.groupBy({
     by: ["exerciseId"],
   });
 
   // Get recent PRs
-  const recentPRs = await database.setEntry.findMany({ include: { exercise: true, workoutSession: true } });
+  const recentPRs = await prisma.setEntry.findMany({ include: { exercise: true, workoutSession: true } });
 
   // Get today's routine
-  const todayRoutine = (await database.routine.findMany()) as Routine[];
+  const todayRoutine = await prisma.routine.findFirst({
+    where: { archivedAt: null },
+    include: {
+      days: {
+        include: {
+          items: {
+            include: { exercise: true },
+            orderBy: { order: "asc" },
+          },
+        },
+        orderBy: { order: "asc" },
+      },
+    },
+  });
 
   return {
     weekSessions,
     monthVolume: monthVolumeResult._sum.weightKg || 0,
     uniqueExercises: uniqueExercisesResult.length,
     recentPRs: recentPRs.slice(0, 3),
-    todayRoutine: todayRoutine[0] || null,
+    todayRoutine: todayRoutine,
   };
 }
 

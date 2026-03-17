@@ -331,7 +331,7 @@ export const db = {
     },
   },
   setEntry: {
-    findMany: async ({ where, include }: { where?: any, include?: any } = {}) => {
+    findMany: async ({ where, include }: { where?: any; include?: any } = {}) => {
       return mockSetEntries;
     },
     aggregate: async ({ where, _sum }: { where?: any; _sum?: any } = {}) => {
@@ -345,6 +345,11 @@ export const db = {
     groupBy: async () => {
       const uniqueExercises = [...new Set(mockSetEntries.map((entry) => entry.exerciseId))];
       return uniqueExercises.map((exerciseId) => ({ exerciseId }));
+    },
+  },
+  routineDay: {
+    findMany: async ({ where }: { where: { routineId: number } } = { where: { routineId: 1 } }) => {
+      return mockRoutines.find((r) => r.id === where.routineId)?.days || [];
     },
   },
 };
