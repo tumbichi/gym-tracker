@@ -6,9 +6,11 @@ export default async function RoutinesPage() {
   const allExercises = await getAllExercises();
 
   return (
-    <RoutineList
-      initialRoutines={routines}
-      initialExercises={allExercises}
-    />
+    <div className="flex-1 space-y-6 p-6">
+      <RoutineList
+        initialRoutines={routines}
+        initialExercises={allExercises}
+      />
+    </div>
   );
 }

@@ -7,6 +7,7 @@ import { Input } from "@core/components/ui/input"
 import { Label } from "@core/components/ui/label"
 import { Textarea } from "@core/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@core/components/ui/select"
+import { Exercise } from '@prisma/client';
 import { DialogClose } from "@core/components/ui/dialog"
 import { createExercise, updateExercise } from "@app/actions/exercises"
 import { toast } from "sonner"

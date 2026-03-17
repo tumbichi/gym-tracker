@@ -1,5 +1,5 @@
 import { getRoutineById, getAllExercises } from "@modules/routines/actions/routines.actions";
-import RoutineDetails from "@modules/routines/features/routine-details";
+import RoutineDetailsFeature from "@modules/routines/features/routine-details.feature";
 import { notFound } from "next/navigation";
 
 export default async function RoutineDetailPage({ params }: { params: { id: string } }) {
@@ -20,5 +20,5 @@ export default async function RoutineDetailPage({ params }: { params: { id: stri
     notFound();
   }
 
-  return <RoutineDetails initialRoutine={routine} initialExercises={allExercises} />;
+  return <RoutineDetailsFeature initialRoutine={routine} initialExercises={allExercises} />;
 }

@@ -154,8 +154,7 @@ function WorkoutSessionProvider({ children, initialAvailableExercises, routineDa
             name: item.exercise.name,
             targetSeries: item.series,
             targetReps: item.reps,
-            targetWeight: item.targetWeight || undefined,
-            notes: item.notes || "",
+             notes: item.notes || "",
             sets: Array.from({ length: item.series }, (_, i) => {
               let repsForSet = 0;
               if (repsArray.length > 1) {
@@ -168,15 +167,14 @@ function WorkoutSessionProvider({ children, initialAvailableExercises, routineDa
                 id: `set-${item.exercise.id}-${i + 1}`,
                 exerciseId: item.exercise.id,
                 exerciseName: item.exercise.name,
-                setNumber: i + 1,
-                targetReps: item.reps,
-                targetWeight: item.targetWeight || undefined,
-                repsDone: repsForSet,
-                weightKg: item.targetWeight || 0,
-                rpe: undefined,
-                notes: "",
-                completed: false,
-              };
+                 setNumber: i + 1,
+                 targetReps: item.reps,
+                 repsDone: repsForSet,
+                 weightKg: 0,
+                 rpe: undefined,
+                 notes: "",
+                 completed: false,
+               };
             }),
           };
         });

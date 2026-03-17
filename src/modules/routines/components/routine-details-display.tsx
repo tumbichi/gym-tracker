@@ -1,8 +1,7 @@
-
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@core/components/ui/card";
 import { Badge } from "@core/components/ui/badge";
 import { Separator } from "@core/components/ui/separator";
-import type { Routine } from "@modules/routines/actions/routines.actions";
+import type { Routine } from "@modules/routines/types"; // Asumimos que este tipo existirá
 import RoutineExerciseDetailsItem from "./RoutineExerciseDetailsItem";
 
 interface RoutineDetailsDisplayProps {
@@ -10,13 +9,15 @@ interface RoutineDetailsDisplayProps {
 }
 
 export default function RoutineDetailsDisplay({ routine }: RoutineDetailsDisplayProps) {
+  const activeDaysCount = routine.days.filter((day) => day.items.length > 0).length;
+
   return (
     <div className="p-4 md:p-6 space-y-6">
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl md:text-3xl">{routine.name}</CardTitle>
           <CardDescription>
-            {routine.weeks} semana{routine.weeks !== 1 ? "s" : ""} de duración
+            {activeDaysCount} día{activeDaysCount !== 1 ? "s" : ""} de entrenamiento
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -47,7 +48,7 @@ export default function RoutineDetailsDisplay({ routine }: RoutineDetailsDisplay
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground">No hay ejercicios para este día.</p>
+                <p className="text-sm text-muted-foreground">Día de descanso.</p>
               )}
             </div>
           ))}

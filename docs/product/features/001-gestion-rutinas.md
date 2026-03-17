@@ -1,0 +1,193 @@
+# PRD: Gestión de Rutinas
+
+**ID**: features/001-gestion-rutinas
+**Estado**: Aprobado
+**Fecha**: 2026-03-15
+**Autor**: product-manager
+**Versión**: 1.1
+
+---
+
+## 1. Contexto y problema
+
+El "Entrenador Consciente" necesita un lugar donde definir su programa de entrenamiento antes de llegar al gimnasio. Hoy, sin un módulo de rutinas funcional, el usuario no tiene una plantilla estructurada desde la cual ejecutar su sesión: no sabe qué ejercicios le tocan, en qué orden, ni cuántas series y repeticiones planificó para cada uno.
+
+Sin este módulo, el usuario llega al gimnasio sin guía, improvisa su entrenamiento o depende de una libreta/Notion externos, lo que destruye la propuesta de valor central de Gym Tracker: registrar la realidad de cada sesión partiendo de un plan.
+
+La Gestión de Rutinas es la base sobre la que se construye todo lo demás: sin rutinas, no hay sesiones; sin sesiones, no hay historial; sin historial, no hay progreso medible.
+
+---
+
+## 2. Objetivos
+
+- El usuario puede crear y editar una rutina completa (nombre, días, ejercicios, series y reps) en menos de 3 minutos desde el celular.
+- El usuario puede gestionar hasta 7 días por rutina, con nombre libre por día, sin necesidad de usar el teclado numérico para configurar series o repeticiones.
+- El historial de entrenamiento asociado a una rutina nunca se pierde, independientemente de las acciones que el usuario realice sobre esa rutina.
+
+---
+
+## 3. Non-goals
+
+Los siguientes puntos están **explícitamente fuera del alcance** de este PRD:
+
+- **Peso objetivo por ejercicio**: la rutina es solo estructura. El peso real se decide en el momento según la capacidad del día.
+- **Inicio de sesión de entrenamiento**: el flujo "empezar a entrenar" (seleccionar rutina, elegir día y arrancar sesión) pertenece al módulo Log Workout y se define en su propio PRD.
+- **Rutinas multi-semana**: el MVP soporta únicamente rutinas de 1 semana. Rutinas de 2 o más semanas alternadas van a Fase 2.
+- **Duplicar rutinas**: crear una copia de una rutina existente va a Fase 2.
+- **Drag & drop para reordenar ejercicios**: va a Fase 2. El MVP usa botones ↑↓.
+- **RPE / RIR objetivo en la plantilla**: no forma parte de los parámetros de la rutina en esta versión.
+- **Días fijos de la semana**: los días son relativos ("Día 1", "Día 2"), no atados a Lunes, Martes, etc.
+
+---
+
+## 4. Usuarios afectados
+
+**El "Entrenador Consciente"** — usuario que sigue un programa de fuerza estructurado (Push/Pull/Legs, Upper/Lower, 5/3/1, etc.), autorregula sus cargas según cómo se siente cada día, y necesita precisión sin fricción mientras entrena.
+
+**Contexto de uso principal**: planificación previa al entrenamiento, desde el celular, generalmente en casa o en el transporte. No es una tarea que se realiza en el gimnasio entre series — es la configuración del "mapa" que se va a seguir después.
+
+---
+
+## 5. User stories
+
+- Como entrenador consciente, quiero crear una rutina con nombre y varios días para tener mi programa organizado dentro de la app.
+- Como entrenador consciente, quiero agregar ejercicios a cada día de mi rutina para saber qué movimientos me tocan en cada sesión.
+- Como entrenador consciente, quiero definir cuántas series y cuántas repeticiones tiene cada serie de cada ejercicio para tener una guía de volumen antes de llegar al gimnasio.
+- Como entrenador consciente, quiero poder reordenar los ejercicios dentro de un día para respetar la secuencia óptima de mi programa.
+- Como entrenador consciente, quiero crear un ejercicio nuevo desde el editor de rutinas sin perder lo que estaba haciendo, para no tener que salir a otro menú cuando encuentro un movimiento que no está en el catálogo.
+- Como entrenador consciente, quiero que mis rutinas pasadas no desaparezcan aunque las archive, para poder consultar el historial de sesiones que hice con ellas.
+- Como entrenador consciente, quiero poder editar el nombre de cada día de mi rutina para identificarlos rápidamente (ej: "Empuje", "Tirón", "Piernas").
+
+---
+
+## 6. Flujo principal
+
+### Crear una rutina nueva
+
+1. El usuario accede a la sección "Rutinas" desde la navegación principal.
+2. Ve la lista de sus rutinas existentes (o un estado vacío si no tiene ninguna).
+3. Toca el botón "Nueva rutina".
+4. Escribe el nombre de la rutina (ej: "Push Pull Legs").
+5. El sistema crea la rutina y abre el editor.
+
+### Configurar los días
+
+6. El editor muestra la rutina con 0 días. El usuario toca "Agregar día".
+7. El sistema agrega "Día 1" con nombre editable. El usuario puede renombrarlo (ej: "Empuje") o dejarlo como está.
+8. El usuario repite hasta tener todos los días que necesita (máximo 7).
+9. El usuario puede eliminar un día si no tiene ejercicios asociados.
+
+### Agregar ejercicios a un día
+
+10. El usuario toca un día para expandirlo y ve la lista de ejercicios (vacía al inicio).
+11. Toca "Agregar ejercicio" y se abre el selector de ejercicios (búsqueda + lista del catálogo).
+12. Si el ejercicio no existe, toca "Crear ejercicio" y se abre un modal para crearlo sin salir del editor.
+13. El usuario selecciona o crea el ejercicio. Se agrega al día con valores por defecto (ej: 3 series, 10 reps por serie).
+
+### Configurar series y repeticiones
+
+14. El usuario ve el ejercicio con sus filas de series. Cada fila tiene un stepper de reps.
+15. Ajusta el número de series con el stepper de series. El sistema agrega o elimina filas automáticamente.
+16. Ajusta las reps de cada serie individualmente con el stepper de cada fila.
+17. Si todas las series tienen las mismas reps, solo necesita ajustar una vez (el sistema puede igualarlas o el usuario las ajusta fila por fila).
+
+### Reordenar ejercicios
+
+18. Cada ejercicio tiene botones ↑ y ↓. El usuario los usa para cambiar el orden dentro del día.
+
+### Guardar y salir
+
+19. Los cambios se guardan automáticamente (o con un botón explícito "Guardar"). El usuario vuelve a la lista de rutinas.
+
+---
+
+## 7. Criterios de aceptación
+
+### Gestión de rutinas
+
+- [ ] El usuario puede crear una rutina con un nombre de hasta 100 caracteres.
+- [ ] El usuario puede editar el nombre de una rutina existente.
+- [ ] Una rutina sin sesiones de entrenamiento asociadas puede eliminarse permanentemente, previa confirmación explícita del usuario.
+- [ ] Una rutina con sesiones de entrenamiento asociadas **no puede eliminarse**. El sistema ofrece la opción de archivarla.
+- [ ] Una rutina archivada no aparece en la lista principal ni en ninguna otra sección de la UI del MVP. Sus datos y el historial de sesiones asociado se conservan íntegramente en el sistema.
+- [ ] El usuario puede desarchivar una rutina archivada (acceso a rutinas archivadas disponible en el MVP para poder reactivarlas).
+- [ ] La lista de rutinas activas carga en menos de 1 segundo en condiciones normales de red.
+
+### Gestión de días
+
+- [ ] El usuario puede agregar entre 1 y 7 días a una rutina.
+- [ ] Al agregar un día, el sistema asigna automáticamente el nombre "Día N" (donde N es el número correlativo).
+- [ ] El usuario puede editar el nombre de un día. El nombre puede tener hasta 50 caracteres.
+- [ ] El usuario puede eliminar un día que no tenga ejercicios asociados.
+- [ ] El usuario **no puede eliminar** un día que tenga ejercicios. Debe eliminar los ejercicios primero.
+
+### Gestión de ejercicios dentro de un día
+
+- [ ] El usuario puede agregar ejercicios a un día desde el catálogo existente mediante búsqueda por nombre.
+- [ ] El usuario puede crear un ejercicio nuevo desde un modal dentro del editor de rutinas, sin perder el estado del editor.
+- [ ] El ejercicio recién creado queda disponible inmediatamente para ser agregado al día.
+- [ ] El usuario puede eliminar un ejercicio de un día (con confirmación).
+- [ ] El usuario puede reordenar ejercicios dentro de un día usando los botones ↑ y ↓.
+- [ ] El botón ↑ está deshabilitado para el primer ejercicio de la lista. El botón ↓ está deshabilitado para el último.
+- [ ] No hay límite en la cantidad de ejercicios que se pueden agregar a un día.
+- [ ] El sistema impide agregar un ejercicio que ya existe en el mismo día: el ejercicio aparece deshabilitado o excluido del selector. Esta validación es únicamente en la interfaz — no requiere restricción en el backend.
+
+### Configuración de series y repeticiones
+
+- [ ] Cada ejercicio tiene un stepper para el número de series (mínimo 1, máximo 10).
+- [ ] Al cambiar el número de series, el sistema agrega o elimina filas de reps automáticamente. Las filas existentes no pierden sus valores al agregar nuevas.
+- [ ] Cada fila de serie tiene un stepper individual de repeticiones (mínimo 1, máximo 50).
+- [ ] Al agregar una nueva fila de serie, el valor de reps por defecto es igual al de la última fila existente.
+- [ ] Los steppers de series y reps funcionan correctamente con el dedo (área táctil mínima de 44x44px).
+
+---
+
+## 8. Datos y entidades involucradas
+
+- **Un usuario puede tener múltiples rutinas.** Cada rutina tiene un nombre y puede estar activa o archivada.
+- **Una rutina tiene entre 1 y 7 días.** Cada día tiene un nombre (por defecto "Día N", editable) y un orden dentro de la rutina.
+- **Cada día tiene una lista ordenada de ejercicios.** El orden es relevante y el usuario lo controla.
+- **Cada ejercicio dentro de un día tiene una configuración de series.** Cada serie tiene su propio número de repeticiones objetivo. No hay peso objetivo — el peso se decide en el momento de entrenar.
+- **Los ejercicios provienen del catálogo global.** Un mismo ejercicio puede aparecer en múltiples rutinas y múltiples días.
+- **Una rutina puede tener sesiones de entrenamiento históricas asociadas.** Si tiene al menos una sesión, no puede eliminarse — solo archivarse. El historial nunca se borra.
+
+---
+
+## 9. Fases de implementación
+
+### Fase 1 — MVP (este PRD)
+
+- CRUD completo de rutinas (crear, editar nombre, archivar).
+- Gestión de días: agregar hasta 7, nombrar libremente, eliminar si están vacíos.
+- Gestión de ejercicios por día: agregar desde catálogo, crear on-the-fly, eliminar, reordenar con ↑↓.
+- Configuración de series y reps: filas por serie con stepper individual de reps.
+- Protección del historial: rutinas con sesiones solo se pueden archivar, nunca eliminar.
+
+### Fase 2 — Iteración
+
+- **Duplicar rutinas**: clonar una rutina existente como punto de partida para una nueva.
+- **Drag & drop**: reordenar ejercicios arrastrando, como alternativa táctil a los botones ↑↓.
+- **Rutinas multi-semana**: soporte para programas de 2 o más semanas con días distintos por semana. Workaround actual: crear múltiples rutinas de 1 semana y alternarlas manualmente.
+- **Notas por ejercicio**: campo de texto libre opcional para indicaciones específicas (ej: "pausa de 2 seg en el fondo").
+
+---
+
+## 10. Preguntas abiertas
+
+~~- [ ] ¿Cuál es el límite máximo de ejercicios por día?~~
+**Resuelto**: No hay límite en el MVP.
+
+~~- [ ] ¿El usuario puede tener ejercicios repetidos en el mismo día?~~
+**Resuelto**: No se permiten. Validación solo en UI — el ejercicio ya presente en el día aparece deshabilitado en el selector. No se requiere restricción en el backend.
+
+~~- [ ] Cuando se archiva una rutina, ¿aparece en alguna sección de "Archivadas" accesible para el usuario?~~
+**Resuelto**: Las rutinas archivadas NO son visibles en la UI del MVP. Desaparecen de la vista principal. Sus datos se conservan en el sistema y pueden recuperarse (el mecanismo de desarchivado queda a criterio de implementación).
+
+---
+
+## Historial de cambios
+
+| Versión | Fecha | Cambio |
+|---------|-------|--------|
+| 1.0 | 2026-03-15 | Versión inicial — discovery completado |
+| 1.1 | 2026-03-15 | Preguntas abiertas cerradas: límite de ejercicios, duplicados en UI, visibilidad de archivadas |

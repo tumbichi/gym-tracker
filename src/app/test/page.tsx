@@ -5,7 +5,6 @@ import { Badge } from "@core/components/ui/badge";
 import { PlusCircle, Calendar, Dumbbell, Clock } from "lucide-react";
 import { WorkoutSelector } from "@core/components/workout-selector";
 import { prisma } from "@core/lib/prisma";
-import { database } from "@core/lib/database";
 import { Routine as PrismaRoutine, RoutineDay as PrismaRoutineDay, RoutineExercise as PrismaRoutineExercise, Exercise } from "@prisma/client";
 
 type RoutineExercise = PrismaRoutineExercise & { exercise: Exercise };
@@ -13,7 +12,7 @@ type RoutineDay = PrismaRoutineDay & { items: RoutineExercise[] };
 type Routine = PrismaRoutine & { days: RoutineDay[] };
 
 async function getRoutines() {
-  return await database.routine.findMany({
+  return await prisma.routine.findMany({
     include: {
       days: {
         include: {
@@ -104,8 +103,7 @@ export default async function LogWorkoutPage() {
                                   <span>{item.exercise.name}</span>
                                   <span className="text-muted-foreground">
                                     {item.series} x {item.reps}
-                                    {item.targetWeight && ` @ ${item.targetWeight}kg`}
-                                  </span>
+                                   </span>
                                 </div>
                               ))}
                               {todayWorkout.items.length > 3 && (

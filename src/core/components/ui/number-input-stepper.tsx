@@ -1,26 +1,18 @@
 "use client";
 
 import React from "react";
+import { Input } from "./input";
 import { Button } from "./button";
-import { Input, type InputProps } from "./input";
 import { Minus, Plus } from "lucide-react";
-
-interface NumberInputStepperProps extends Omit<InputProps, "onChange" | "value"> {
-  value: number;
-  onChange: (value: number) => void;
-  step?: number;
-  min?: number;
-  max?: number;
-}
-
 import { cn } from "@core/lib/utils";
 
-interface NumberInputStepperProps extends Omit<InputProps, "onChange" | "value"> {
+// Omit onChange from the standard input attributes to avoid conflict
+interface NumberInputStepperProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
   value: number;
   onChange: (value: number) => void;
-  step?: number;
   min?: number;
   max?: number;
+  step?: number;
   suffix?: string;
 }
 
