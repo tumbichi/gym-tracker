@@ -27,8 +27,8 @@ export default function RecentSessions({ sessions }: RecentSessionsProps) {
                 <p className="text-xs text-muted-foreground">{formatDatetime(new Date(session.date))}</p>
               </div>
               <div className="text-xs text-muted-foreground">
-                {session.setEntries.length} series •{" "}
-                {new Set(session.setEntries.map((set) => set.exerciseId)).size} ejercicios
+                {session.workoutExercises.reduce((acc, ex) => acc + ex.sets.length, 0)} series •{" "}
+                {session.workoutExercises.length} ejercicios
               </div>
               {session.notes && <p className="text-xs text-muted-foreground italic">{session.notes}</p>}
             </div>

@@ -25,9 +25,11 @@ async function getWorkoutStats() {
   // Get total volume this month
   const monthVolume = await database.setEntry.aggregate({
     where: {
-      workoutSession: {
-        date: {
-          gte: startOfMonth,
+      workoutExercise: {
+        session: {
+          date: {
+            gte: startOfMonth,
+          },
         },
       },
     },
@@ -40,9 +42,11 @@ async function getWorkoutStats() {
   const uniqueExercises = await database.setEntry.groupBy({
     by: ["exerciseId"],
     where: {
-      workoutSession: {
-        date: {
-          gte: startOfMonth,
+      workoutExercise: {
+        session: {
+          date: {
+            gte: startOfMonth,
+          },
         },
       },
     },
@@ -76,11 +80,13 @@ async function getExercises() {
 async function getMuscleGroupAnalysis() {
   const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
 
-  const muscleGroupData = await database.setEntry.findMany({
+  const muscleGroupData = await prisma.setEntry.findMany({
     where: {
-      workoutSession: {
-        date: {
-          gte: startOfMonth,
+      workoutExercise: {
+        session: {
+          date: {
+            gte: startOfMonth,
+          },
         },
       },
     },
@@ -119,9 +125,11 @@ async function getRPETrends() {
 
   const rpeData = await prisma.setEntry.findMany({
     where: {
-      workoutSession: {
-        date: {
-          gte: thirtyDaysAgo,
+      workoutExercise: {
+        session: {
+          date: {
+            gte: thirtyDaysAgo,
+          },
         },
       },
       rpe: {
@@ -134,27 +142,34 @@ async function getRPETrends() {
           name: true,
         },
       },
-      workoutSession: {
+      workoutExercise: {
         select: {
-          date: true,
+          session: {
+            select: {
+              date: true,
+            },
+          },
         },
       },
     },
     orderBy: {
-      workoutSession: {
-        date: "desc",
+      workoutExercise: {
+        session: {
+          date: "desc",
+        },
       },
     },
   });
 
   const exerciseRPE = rpeData.reduce((acc, entry) => {
+    if (!entry.workoutExercise?.session?.date) return acc;
     const exerciseName = entry.exercise.name;
     if (!acc[exerciseName]) {
       acc[exerciseName] = [];
     }
     acc[exerciseName].push({
       rpe: entry.rpe!,
-      date: entry.workoutSession.date,
+      date: entry.workoutExercise.session.date,
     });
     return acc;
   }, {} as Record<string, Array<{ rpe: number; date: Date }>>);
@@ -191,24 +206,34 @@ async function getWeeklyVolume() {
   const today = new Date();
   const eightWeeksAgo = new Date(today.getTime() - 8 * 7 * 24 * 60 * 60 * 1000);
 
-  const setEntries = await database.setEntry.findMany({
+  const setEntries = await prisma.setEntry.findMany({
     where: {
-      workoutSession: {
-        date: {
-          gte: eightWeeksAgo,
+      workoutExercise: {
+        session: {
+          date: {
+            gte: eightWeeksAgo,
+          },
         },
       },
     },
     include: {
-      workoutSession: true,
+      workoutExercise: {
+        include: {
+          session: {
+            select: {
+              date: true,
+            },
+          },
+        },
+      },
     },
   });
 
   const weeklyVolume: { [key: string]: number } = {};
 
   for (const entry of setEntries) {
-    if (entry.workoutSession?.date) {
-      const date = new Date(entry.workoutSession.date);
+    if (entry.workoutExercise?.session?.date) {
+      const date = new Date(entry.workoutExercise.session.date);
       const dayOfWeek = date.getDay();
       const weekStart = new Date(date.setDate(date.getDate() - dayOfWeek));
       weekStart.setHours(0, 0, 0, 0);
@@ -239,12 +264,22 @@ async function getExerciseProgress(exerciseSlug: string) {
       },
     },
     include: {
-      workoutSession: true,
+      workoutExercise: {
+        include: {
+          session: {
+            select: {
+              date: true,
+            },
+          },
+        },
+      },
       exercise: true,
     },
     orderBy: {
-      workoutSession: {
-        date: "asc",
+      workoutExercise: {
+        session: {
+          date: "asc",
+        },
       },
     },
   });
@@ -252,7 +287,8 @@ async function getExerciseProgress(exerciseSlug: string) {
   const progressData: { [key: string]: number } = {};
 
   for (const entry of setEntries) {
-    const date = new Date(entry.workoutSession.date).toISOString().split("T")[0];
+    if (!entry.workoutExercise?.session?.date) continue;
+    const date = new Date(entry.workoutExercise.session.date).toISOString().split("T")[0];
     if (!progressData[date] || entry.weightKg > progressData[date]) {
       progressData[date] = entry.weightKg;
     }

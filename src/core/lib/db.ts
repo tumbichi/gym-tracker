@@ -37,20 +37,31 @@ export interface RoutineExercise {
   exercise?: Exercise;
 }
 
+export interface WorkoutExercise {
+  id: number;
+  sessionId: number;
+  exerciseId: number;
+  order: number;
+  notes: string | null;
+  exercise?: Exercise;
+  sets: SetEntry[];
+  session?: WorkoutSession;
+}
+
 export interface WorkoutSession {
   id: number;
   userId: number;
   date: Date;
   routineId: number | null;
   notes: string | null;
-  setEntries: SetEntry[];
+  workoutExercises: WorkoutExercise[];
   createdAt: Date;
   routine?: Routine;
 }
 
 export interface SetEntry {
   id: number;
-  sessionId: number;
+  workoutExerciseId: number;
   exerciseId: number;
   setNumber: number;
   repsDone: number;
@@ -59,7 +70,7 @@ export interface SetEntry {
   notes: string | null;
   createdAt: Date;
   exercise?: Exercise;
-  workoutSession?: WorkoutSession;
+  workoutExercise?: WorkoutExercise;
 }
 
 // Mock data for v0 environment
@@ -211,7 +222,7 @@ const mockSessions: WorkoutSession[] = [
     notes: "Buen entrenamiento",
     createdAt: new Date(),
     routine: mockRoutines[0],
-    setEntries: [],
+    workoutExercises: [],
   },
   {
     id: 2,
@@ -221,14 +232,47 @@ const mockSessions: WorkoutSession[] = [
     notes: "Sesión intensa",
     createdAt: new Date(),
     routine: mockRoutines[0],
-    setEntries: [],
+    workoutExercises: [],
+  },
+];
+
+const mockWorkoutExercises: WorkoutExercise[] = [
+  {
+    id: 1,
+    sessionId: 1,
+    exerciseId: 1,
+    order: 0,
+    notes: null,
+    exercise: mockExercises[0],
+    sets: [],
+    session: mockSessions[0],
+  },
+  {
+    id: 2,
+    sessionId: 1,
+    exerciseId: 3,
+    order: 1,
+    notes: null,
+    exercise: mockExercises[2],
+    sets: [],
+    session: mockSessions[0],
+  },
+  {
+    id: 3,
+    sessionId: 2,
+    exerciseId: 2,
+    order: 0,
+    notes: null,
+    exercise: mockExercises[1],
+    sets: [],
+    session: mockSessions[1],
   },
 ];
 
 const mockSetEntries: SetEntry[] = [
   {
     id: 1,
-    sessionId: 1,
+    workoutExerciseId: 1,
     exerciseId: 1,
     setNumber: 1,
     repsDone: 10,
@@ -237,11 +281,11 @@ const mockSetEntries: SetEntry[] = [
     notes: null,
     createdAt: new Date(),
     exercise: mockExercises[0],
-    workoutSession: mockSessions[0],
+    workoutExercise: mockWorkoutExercises[0],
   },
   {
     id: 2,
-    sessionId: 1,
+    workoutExerciseId: 2,
     exerciseId: 3,
     setNumber: 1,
     repsDone: 8,
@@ -250,11 +294,11 @@ const mockSetEntries: SetEntry[] = [
     notes: null,
     createdAt: new Date(),
     exercise: mockExercises[2],
-    workoutSession: mockSessions[0],
+    workoutExercise: mockWorkoutExercises[1],
   },
   {
     id: 3,
-    sessionId: 2,
+    workoutExerciseId: 3,
     exerciseId: 2,
     setNumber: 1,
     repsDone: 12,
@@ -263,13 +307,18 @@ const mockSetEntries: SetEntry[] = [
     notes: null,
     createdAt: new Date(),
     exercise: mockExercises[1],
-    workoutSession: mockSessions[1],
+    workoutExercise: mockWorkoutExercises[2],
   },
 ];
 
-// Update sessions to include set entries
-mockSessions[0].setEntries = [mockSetEntries[0], mockSetEntries[1]];
-mockSessions[1].setEntries = [mockSetEntries[2]];
+// Update workout exercises to include sets
+mockWorkoutExercises[0].sets = [mockSetEntries[0]];
+mockWorkoutExercises[1].sets = [mockSetEntries[1]];
+mockWorkoutExercises[2].sets = [mockSetEntries[2]];
+
+// Update sessions to include workout exercises
+mockSessions[0].workoutExercises = [mockWorkoutExercises[0], mockWorkoutExercises[1]];
+mockSessions[1].workoutExercises = [mockWorkoutExercises[2]];
 
 // Database abstraction layer
 export const db = {
@@ -324,7 +373,7 @@ export const db = {
         ...data,
         id: Math.max(...mockSessions.map((s) => s.id)) + 1,
         createdAt: new Date(),
-        setEntries: [],
+        workoutExercises: [],
       };
       mockSessions.push(newSession);
       return newSession;

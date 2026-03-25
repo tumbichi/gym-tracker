@@ -576,12 +576,22 @@ async function main() {
           continue;
         }
 
+        // Create workout exercise first
+        const workoutExercise = await prisma.workoutExercise.create({
+          data: {
+            sessionId: session.id,
+            exerciseId: exercise.id,
+            order: 0, // Will be updated later
+            notes: null,
+          },
+        });
+
         // iterate sets
         let setNumber = 1;
         for (const s of exEntry.sets) {
           await prisma.setEntry.create({
             data: {
-              sessionId: session.id,
+              workoutExerciseId: workoutExercise.id,
               exerciseId: exercise.id,
               setNumber,
               repsDone: s.reps || 0,

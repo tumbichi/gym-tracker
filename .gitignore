@@ -25,7 +25,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
 # Engram
 .engram/*.db
 .engram/*.db-shm
 .engram/*.db-wal
+
+# e2e test output
+test-results
+playwright-report

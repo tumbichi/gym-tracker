@@ -26,11 +26,11 @@ pnpm postinstall      # Ejecuta prisma generate (automatico tras pnpm install)
 docker compose -f docker/docker-compose.yml up -d
 
 # Comandos Prisma
-npx prisma generate          # Generar cliente tras cambios al schema
-npx prisma migrate dev       # Crear y aplicar migracion
-npx prisma migrate deploy    # Aplicar migraciones pendientes (produccion)
-npx prisma db seed           # Ejecutar seed (prisma/seed.ts)
-npx prisma studio            # Navegador visual de la BD
+pnpx prisma generate          # Generar cliente tras cambios al schema
+pnpx prisma migrate dev       # Crear y aplicar migracion
+pnpx prisma migrate deploy    # Aplicar migraciones pendientes (produccion)
+pnpx prisma db seed           # Ejecutar seed (prisma/seed.ts)
+pnpx prisma studio            # Navegador visual de la BD
 ```
 
 ### Testing

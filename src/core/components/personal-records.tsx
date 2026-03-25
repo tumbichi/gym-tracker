@@ -1,19 +1,25 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@core/components/ui/card"
 import { Badge } from "@core/components/ui/badge"
 import { Trophy, TrendingUp, Calendar } from "lucide-react"
-import { database } from "@core/lib/database"
-import { SetEntry, Exercise, WorkoutSession } from "@prisma/client"
+import { prisma } from "@core/lib/prisma"
+import { SetEntry, Exercise, WorkoutExercise, WorkoutSession } from "@prisma/client"
 
 type SetEntryWithRelations = SetEntry & {
   exercise: Exercise;
-  workoutSession: WorkoutSession;
+  workoutExercise: WorkoutExercise & {
+    session: WorkoutSession;
+  };
 }
 
 async function getPersonalRecords() {
-  const setEntries = await database.setEntry.findMany({
+  const setEntries = await prisma.setEntry.findMany({
     include: {
       exercise: true,
-      workoutSession: true,
+      workoutExercise: {
+        include: {
+          session: true,
+        },
+      },
     },
   })
 
@@ -36,13 +42,15 @@ async function getPersonalRecords() {
 
   const records = Object.values(recordsByExercise).map((record: SetEntryWithRelations) => {
     const improvement = "+5kg"
-    const isRecent = new Date(record.workoutSession.date).getTime() > new Date().getTime() - 30 * 24 * 60 * 60 * 1000
+    const isRecent = record.workoutExercise?.session?.date 
+      ? new Date(record.workoutExercise.session.date).getTime() > new Date().getTime() - 30 * 24 * 60 * 60 * 1000
+      : false
 
     return {
       exercise: record.exercise.name,
       weight: record.weightKg,
       reps: record.repsDone,
-      date: record.workoutSession.date.toISOString(),
+      date: record.workoutExercise?.session?.date?.toISOString() ?? new Date().toISOString(),
       improvement,
       isRecent,
     }
