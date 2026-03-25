@@ -10,7 +10,9 @@ test.beforeAll(async () => {
   prisma = new PrismaClient({
     datasources: {
       db: {
-        url: 'postgresql://user:password@localhost:5438/gym_tracker_db?sslmode=disable',
+        url:
+          process.env.DATABASE_URL ||
+          'postgresql://user:password@localhost:5438/gym_tracker_db?sslmode=disable',
       },
     },
   })
