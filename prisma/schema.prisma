@@ -20,27 +20,28 @@ model User {
 }
 
 model Exercise {
-  id           Int               @id @default(autoincrement())
-  name         String
-  slug         String            @unique
-  primaryGroup String? // p. ej. "Espalda", "Pecho", "Pierna", "Hombro", "Bíceps", "Tríceps"
-  equipment    String? // "Máquina", "Barra", "Mancuernas", "Smith", "Prensa"
-  notes        String?
-  createdAt    DateTime          @default(now())
-  routineItems RoutineExercise[]
-  setEntries   SetEntry[]
+  id               Int               @id @default(autoincrement())
+  name             String
+  slug             String            @unique
+  primaryGroup     String? // p. ej. "Espalda", "Pecho", "Pierna", "Hombro", "Bíceps", "Tríceps"
+  equipment        String? // "Máquina", "Barra", "Mancuernas", "Smith", "Prensa"
+  notes            String?
+  createdAt        DateTime          @default(now())
+  routineItems     RoutineExercise[]
+  setEntries       SetEntry[]
+  workoutExercises WorkoutExercise[]
 }
 
 model Routine {
-  id        Int              @id @default(autoincrement())
-  name      String           @db.VarChar(100)
-  userId    Int
-  user      User             @relation(fields: [userId], references: [id])
-  weeks     Int              @default(1)
-  days      RoutineDay[]
-  sessions  WorkoutSession[]
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
+  id         Int              @id @default(autoincrement())
+  name       String           @db.VarChar(100)
+  userId     Int
+  user       User             @relation(fields: [userId], references: [id])
+  weeks      Int              @default(1)
+  days       RoutineDay[]
+  sessions   WorkoutSession[]
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
   archivedAt DateTime?
 
   @@index([userId])
@@ -73,27 +74,43 @@ model RoutineExercise {
 }
 
 model WorkoutSession {
+  id               Int               @id @default(autoincrement())
+  userId           Int
+  date             DateTime
+  routineId        Int? // si viene de una rutina
+  notes            String?
+  createdAt        DateTime          @default(now())
+  user             User              @relation(fields: [userId], references: [id])
+  routine          Routine?          @relation(fields: [routineId], references: [id])
+  workoutExercises WorkoutExercise[]
+}
+
+model WorkoutExercise {
   id         Int        @id @default(autoincrement())
-  userId     Int
-  date       DateTime
-  routineId  Int? // si viene de una rutina
+  sessionId  Int
+  exerciseId Int
+  order      Int // Posición en la sesión
   notes      String?
-  setEntries SetEntry[]
-  createdAt  DateTime   @default(now())
-  user       User       @relation(fields: [userId], references: [id])
-  routine    Routine?   @relation(fields: [routineId], references: [id])
+  sets       SetEntry[]
+  session    WorkoutSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  exercise   Exercise       @relation(fields: [exerciseId], references: [id])
+
+  @@index([sessionId])
+  @@index([sessionId, order])
 }
 
 model SetEntry {
-  id             Int            @id @default(autoincrement())
-  sessionId      Int
-  exerciseId     Int
-  setNumber      Int
-  repsDone       Int
-  weightKg       Float
-  rpe            Int? // 1-10
-  notes          String?
-  createdAt      DateTime       @default(now())
-  workoutSession WorkoutSession @relation(fields: [sessionId], references: [id])
-  exercise       Exercise       @relation(fields: [exerciseId], references: [id])
+  id                Int             @id @default(autoincrement())
+  workoutExerciseId Int // Nuevo: referencia al ejercicio de la sesión
+  exerciseId        Int // Redundancia para queries
+  setNumber         Int
+  repsDone          Int
+  weightKg          Float
+  rpe               Int? // 1-10
+  notes             String?
+  createdAt         DateTime        @default(now())
+  workoutExercise   WorkoutExercise @relation(fields: [workoutExerciseId], references: [id], onDelete: Cascade)
+  exercise          Exercise        @relation(fields: [exerciseId], references: [id])
+
+  @@index([workoutExerciseId])
 }

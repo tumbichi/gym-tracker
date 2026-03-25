@@ -84,10 +84,12 @@ export const database = {
             where,
             include: {
               routine: true,
-              setEntries: {
+              workoutExercises: {
                 include: {
                   exercise: true,
+                  sets: true,
                 },
+                orderBy: { order: "asc" },
               },
             },
             orderBy: { date: "desc" },
@@ -119,7 +121,11 @@ export const database = {
             where,
             include: include || {
               exercise: true,
-              workoutSession: true,
+              workoutExercise: {
+                include: {
+                  session: true,
+                },
+              },
             },
             orderBy: { createdAt: "desc" },
           });

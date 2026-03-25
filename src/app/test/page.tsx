@@ -35,9 +35,10 @@ async function getRecentSessions() {
     take: 5,
     include: {
       routine: true,
-      setEntries: {
+      workoutExercises: {
         include: {
           exercise: true,
+          sets: true,
         },
       },
     },
@@ -218,8 +219,8 @@ export default async function LogWorkoutPage() {
                           <p className="text-xs text-muted-foreground">{new Date(session.date).toLocaleDateString()}</p>
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          {session.setEntries.length} series •{" "}
-                          {new Set(session.setEntries.map((set) => set.exerciseId)).size} ejercicios
+                          {session.workoutExercises.reduce((acc: number, ex: any) => acc + ex.sets.length, 0)} series •{" "}
+                          {session.workoutExercises.length} ejercicios
                         </div>
                         {session.notes && <p className="text-xs italic text-muted-foreground">{session.notes}</p>}
                       </div>

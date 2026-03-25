@@ -18,14 +18,22 @@ export async function createWorkoutSession(data: {
   }>;
 }) {
   try {
-    const session = await prisma.workoutSession.create({
-      data: {
-        userId: data.userId,
-        routineId: data.routineId || null,
-        date: data.date,
-        notes: data.notes || null,
-        setEntries: {
-          create: data.sets.map((set) => ({
+    // Group sets by exerciseId to create WorkoutExercises
+    const exerciseMap = new Map<number, typeof data.sets>();
+    for (const set of data.sets) {
+      const existing = exerciseMap.get(set.exerciseId) || [];
+      existing.push(set);
+      exerciseMap.set(set.exerciseId, existing);
+    }
+
+    // Build workoutExercises data with nested sets
+    const workoutExercisesData = Array.from(exerciseMap.entries()).map(
+      ([exerciseId, sets], index) => ({
+        exerciseId,
+        order: index,
+        notes: null,
+        sets: {
+          create: sets.map((set) => ({
             exerciseId: set.exerciseId,
             setNumber: set.setNumber,
             repsDone: set.repsDone,
@@ -34,12 +42,27 @@ export async function createWorkoutSession(data: {
             notes: set.notes || null,
           })),
         },
+      })
+    );
+
+    const session = await prisma.workoutSession.create({
+      data: {
+        userId: data.userId,
+        routineId: data.routineId || null,
+        date: data.date,
+        notes: data.notes || null,
+        workoutExercises: {
+          create: workoutExercisesData,
+        },
       },
       include: {
-        setEntries: {
+        routine: true,
+        workoutExercises: {
           include: {
             exercise: true,
+            sets: true,
           },
+          orderBy: { order: "asc" },
         },
       },
     });

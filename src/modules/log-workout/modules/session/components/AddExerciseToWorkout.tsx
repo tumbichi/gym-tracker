@@ -22,13 +22,24 @@ import { Exercise } from "@prisma/client";
 import { Plus, Search, Minus } from "lucide-react";
 import React, { useState } from "react";
 
+export type LastSessionData = {
+  weightKg: number;
+  repsDone: number;
+};
+
 interface AddExerciseToWorkoutProps {
   onCreateExercise: (newExercise: Exercise) => void;
-  onAddExercise: (exerciseId: number, sets: number) => void;
+  onAddExercise: (exerciseId: number, sets: number, lastSessionData?: LastSessionData | null) => void;
   availableExercises: Exercise[];
+  lastSessionData?: Map<number, LastSessionData>;
 }
 
-function AddExerciseToWorkout({ availableExercises, onAddExercise, onCreateExercise }: AddExerciseToWorkoutProps) {
+function AddExerciseToWorkout({ 
+  availableExercises, 
+  onAddExercise, 
+  onCreateExercise,
+  lastSessionData = new Map() 
+}: AddExerciseToWorkoutProps) {
   const [isAddExerciseOpen, setIsAddExerciseOpen] = useState(false);
   const [isCreateExerciseDialogOpen, setIsCreateExerciseDialogOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -36,7 +47,8 @@ function AddExerciseToWorkout({ availableExercises, onAddExercise, onCreateExerc
 
   const handleAddExercise = (exerciseId: number) => {
     try {
-      onAddExercise(exerciseId, newExerciseSets);
+      const lastData = lastSessionData.get(exerciseId) ?? null;
+      onAddExercise(exerciseId, newExerciseSets, lastData);
       setIsAddExerciseOpen(false);
       setNewExerciseSets(3);
       setSearch("");

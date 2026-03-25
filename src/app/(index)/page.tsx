@@ -27,7 +27,16 @@ async function getDashboardData() {
   });
 
   // Get recent PRs
-  const recentPRs = await prisma.setEntry.findMany({ include: { exercise: true, workoutSession: true } });
+  const recentPRs = await prisma.setEntry.findMany({ 
+    include: { 
+      exercise: true, 
+      workoutExercise: {
+        include: {
+          session: true,
+        },
+      },
+    } 
+  });
 
   // Get today's routine
   const todayRoutine = await prisma.routine.findFirst({
@@ -176,8 +185,8 @@ export default async function Dashboard() {
                     <div>
                       <p className="text-sm font-medium">{pr.exercise?.name}</p>
                       <p className="text-xs text-muted-foreground">
-                        {pr.workoutSession?.date
-                          ? new Date(pr.workoutSession.date).toLocaleDateString("es-ES")
+                        {pr.workoutExercise?.session?.date
+                          ? new Date(pr.workoutExercise.session.date).toLocaleDateString("es-ES")
                           : "Fecha no disponible"}
                       </p>
                     </div>
