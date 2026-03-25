@@ -45,7 +45,7 @@ jobs:
 
       - name: Run lint on changed files
         if: steps.changed-files.outputs.any_changed == 'true'
-        run: pnpm lint ${{ steps.changed-files.outputs.all_changed_files }}
+        run: pnpm lint:ci ${{ steps.changed-files.outputs.all_changed_files }}
 
       - name: Run prettier check
         if: steps.changed-files.outputs.any_changed == 'true'
