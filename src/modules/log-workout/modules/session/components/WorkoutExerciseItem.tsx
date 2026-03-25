@@ -1,15 +1,15 @@
-"use client";
+'use client'
 
-import { Badge } from "@core/components/ui/badge";
-import { Button } from "@core/components/ui/button";
+import { Badge } from '@core/components/ui/badge'
+import { Button } from '@core/components/ui/button'
 import {
   Card,
   CardContent,
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@core/components/ui/card";
-import { Input } from "@core/components/ui/input";
+} from '@core/components/ui/card'
+import { Input } from '@core/components/ui/input'
 import {
   Select,
   SelectContent,
@@ -23,21 +23,21 @@ import { cn } from "@core/lib/utils";
 import { ArrowDown, ArrowUp, Check, Plus, Trash2, Undo2 } from "lucide-react";
 
 interface WorkoutExerciseItemProps {
-  exercise: WorkoutExercise;
-  exerciseIndex: number;
-  isLastItem: boolean;
-  isActive: boolean;
-  completedSets: number;
-  totalSets: number;
-  previousWeight?: number;
-  canUndo: boolean;
-  onUpdateSet: (setId: string, updates: Partial<SetEntry>) => void;
-  onAddSet: () => void;
-  onRemoveSet: (setId: string) => void;
-  onMoveUp: () => void;
-  onMoveDown: () => void;
-  onRemove: () => void;
-  onUndo: () => void;
+  exercise: WorkoutExercise
+  exerciseIndex: number
+  isLastItem: boolean
+  isActive: boolean
+  completedSets: number
+  totalSets: number
+  previousWeight?: number
+  canUndo: boolean
+  onUpdateSet: (setId: string, updates: Partial<SetEntry>) => void
+  onAddSet: () => void
+  onRemoveSet: (setId: string) => void
+  onMoveUp: () => void
+  onMoveDown: () => void
+  onRemove: () => void
+  onUndo: () => void
 }
 
 // Helper function to normalize exercise name for data-test-id (remove accents and special chars)
@@ -94,26 +94,26 @@ function WorkoutExerciseItem({
           </div>
           <div className="flex flex-shrink-0 items-center gap-1 sm:gap-2">
             <Button
-              variant="ghost"
-              size="icon"
+              variant='ghost'
+              size='icon'
               onClick={onMoveUp}
               disabled={exerciseIndex === 0}
-              className="h-8 w-8"
+              className='h-8 w-8'
             >
               <ArrowUp className="h-4 w-4" />
             </Button>
             <Button
-              variant="ghost"
-              size="icon"
+              variant='ghost'
+              size='icon'
               onClick={onMoveDown}
               disabled={isLastItem}
-              className="h-8 w-8"
+              className='h-8 w-8'
             >
               <ArrowDown className="h-4 w-4" />
             </Button>
             <Button
-              variant="ghost"
-              size="sm"
+              variant='ghost'
+              size='sm'
               onClick={onRemove}
               className="text-destructive hover:text-destructive h-8 w-8 p-0"
             >
@@ -224,7 +224,7 @@ function WorkoutExerciseItem({
                   RPE
                 </label>
                 <Select
-                  value={set.rpe?.toString() || ""}
+                  value={set.rpe?.toString() || ''}
                   onValueChange={(value) =>
                     onUpdateSet(set.id, {
                       rpe: value ? Number.parseInt(value) : undefined,
@@ -244,11 +244,11 @@ function WorkoutExerciseItem({
                 </Select>
               </div>
             </div>
-            <div className="flex justify-end pt-1">
+            <div className='flex justify-end pt-1'>
               <Button
-                variant="link"
-                size="sm"
-                className="text-destructive h-8 text-xs sm:text-sm"
+                variant='link'
+                size='sm'
+                className='text-destructive h-8 text-xs sm:text-sm'
                 onClick={() => onRemoveSet(set.id)}
               >
                 <Trash2 className="h-3 w-3 sm:mr-1 sm:h-4 sm:w-4" />
@@ -266,7 +266,7 @@ function WorkoutExerciseItem({
         </Button>
       </CardFooter>
     </Card>
-  );
+  )
 }
 
-export default WorkoutExerciseItem;
+export default WorkoutExerciseItem
