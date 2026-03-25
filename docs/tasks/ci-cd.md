@@ -15,8 +15,8 @@ Este documento detalla las tareas necesarias para implementar el pipeline de Int
 - [ ] Definir el job `lint` en `.github/workflows/ci.yml`.
 - [ ] Configurar el job para que se ejecute en paralelo.
 - [ ] Añadir un paso para configurar `pnpm` y su caché.
-    - [ ] Usar `actions/setup-node@v4` con `pnpm` como `package-manager`.
-    - [ ] Configurar `cache: 'pnpm'`.
+  - [ ] Usar `actions/setup-node@v4` con `pnpm` como `package-manager`.
+  - [ ] Configurar `cache: 'pnpm'`.
 - [ ] Añadir un paso para instalar dependencias con `pnpm install --frozen-lockfile`.
 - [ ] Añadir un paso para ejecutar `pnpm lint`.
 - [ ] Añadir un paso para ejecutar `pnpm prettier:check`.
@@ -27,25 +27,25 @@ Este documento detalla las tareas necesarias para implementar el pipeline de Int
 - [ ] Definir el job `build` en `.github/workflows/ci.yml`.
 - [ ] Configurar el job para que se ejecute en paralelo.
 - [ ] Añadir un paso para configurar `pnpm` y su caché.
-    - [ ] Usar `actions/setup-node@v4` con `pnpm` como `package-manager`.
-    - [ ] Configurar `cache: 'pnpm'`.
+  - [ ] Usar `actions/setup-node@v4` con `pnpm` como `package-manager`.
+  - [ ] Configurar `cache: 'pnpm'`.
 - [ ] Añadir un paso para instalar dependencias con `pnpm install --frozen-lockfile`.
 - [ ] Añadir un paso para ejecutar `pnpm build`.
 - [ ] Añadir un paso para subir el directorio `.next` como un artefacto (`actions/upload-artifact@v4`).
-    - [ ] `name: next-build-artifact`
-    - [ ] `path: .next`
+  - [ ] `name: next-build-artifact`
+  - [ ] `path: .next`
 
 ## 🧪 Job 3: `e2e-tests`
 
 - [ ] Definir el job `e2e-tests` en `.github/workflows/ci.yml`.
 - [ ] Configurar la dependencia del job `build` (`needs: build`).
 - [ ] Añadir un paso para configurar `pnpm` y su caché.
-    - [ ] Usar `actions/setup-node@v4` con `pnpm` como `package-manager`.
-    - [ ] Configurar `cache: 'pnpm'`.
+  - [ ] Usar `actions/setup-node@v4` con `pnpm` como `package-manager`.
+  - [ ] Configurar `cache: 'pnpm'`.
 - [ ] Añadir un paso para instalar dependencias con `pnpm install --frozen-lockfile`.
 - [ ] Añadir un paso para descargar el artefacto del `build` (`actions/download-artifact@v4`).
-    - [ ] `name: next-build-artifact`
-    - [ ] `path: .next`
+  - [ ] `name: next-build-artifact`
+  - [ ] `path: .next`
 - [ ] Añadir un paso para ejecutar `pnpm test:e2e`.
 
 ## 🚀 Job 4: `deploy`
@@ -54,18 +54,18 @@ Este documento detalla las tareas necesarias para implementar el pipeline de Int
 - [ ] Configurar la condición para que solo se ejecute en `push` a `main`.
 - [ ] Configurar las dependencias de los jobs `lint` y `e2e-tests` (`needs: [lint, e2e-tests]`).
 - [ ] Añadir un paso para configurar `pnpm` y su caché.
-    - [ ] Usar `actions/setup-node@v4` con `pnpm` como `package-manager`.
-    - [ ] Configurar `cache: 'pnpm'`.
+  - [ ] Usar `actions/setup-node@v4` con `pnpm` como `package-manager`.
+  - [ ] Configurar `cache: 'pnpm'`.
 - [ ] Añadir un paso para instalar dependencias con `pnpm install --frozen-lockfile`.
 - [ ] Añadir un paso para ejecutar las migraciones de base de datos con `pnpx prisma migrate deploy`.
 - [ ] Añadir un paso para desplegar a Vercel utilizando la Vercel CLI.
-    - [ ] `vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}`
-    - [ ] `vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}`
-    - [ ] `vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}`
+  - [ ] `vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}`
+  - [ ] `vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}`
+  - [ ] `vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}`
 
 ## 🔒 Configuración de Secrets de GitHub
 
 - [ ] Configurar los siguientes secrets en el repositorio de GitHub (Settings -> Secrets and variables -> Actions):
-    - `VERCEL_ORG_ID`
-    - `VERCEL_PROJECT_ID`
-    - `VERCEL_TOKEN`
+  - `VERCEL_ORG_ID`
+  - `VERCEL_PROJECT_ID`
+  - `VERCEL_TOKEN`
