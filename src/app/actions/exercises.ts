@@ -1,7 +1,7 @@
-"use server"
+'use server'
 
-import { database } from "@core/lib/database"
-import { revalidatePath } from "next/cache"
+import { database } from '@core/lib/database'
+import { revalidatePath } from 'next/cache'
 
 export async function createExercise(data: {
   name: string
@@ -21,11 +21,11 @@ export async function createExercise(data: {
       },
     })
 
-    revalidatePath("/exercises")
+    revalidatePath('/exercises')
     return { success: true, exercise: newExercise }
   } catch (error) {
-    console.error("Error creating exercise:", error)
-    return { success: false, error: "Failed to create exercise" }
+    console.error('Error creating exercise:', error)
+    return { success: false, error: 'Failed to create exercise' }
   }
 }
 
@@ -37,7 +37,7 @@ export async function updateExercise(
     primaryGroup?: string
     equipment?: string
     notes?: string
-  },
+  }
 ) {
   try {
     await database.exercise.update({
@@ -51,11 +51,11 @@ export async function updateExercise(
       },
     })
 
-    revalidatePath("/exercises")
+    revalidatePath('/exercises')
     return { success: true }
   } catch (error) {
-    console.error("Error updating exercise:", error)
-    return { success: false, error: "Failed to update exercise" }
+    console.error('Error updating exercise:', error)
+    return { success: false, error: 'Failed to update exercise' }
   }
 }
 
@@ -65,10 +65,10 @@ export async function deleteExercise(id: number) {
       where: { id },
     })
 
-    revalidatePath("/exercises")
+    revalidatePath('/exercises')
     return { success: true }
   } catch (error) {
-    console.error("Error deleting exercise:", error)
-    return { success: false, error: "Failed to delete exercise" }
+    console.error('Error deleting exercise:', error)
+    return { success: false, error: 'Failed to delete exercise' }
   }
 }

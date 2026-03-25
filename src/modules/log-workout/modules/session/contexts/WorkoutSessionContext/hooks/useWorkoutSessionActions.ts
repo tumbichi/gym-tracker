@@ -1,8 +1,8 @@
-import useWorkoutSessionContext from "./useWorkoutSessionContext";
+import useWorkoutSessionContext from './useWorkoutSessionContext'
 
 const useWorkoutSessionActions = () => {
-  const { actions } = useWorkoutSessionContext();
-  return actions;
-};
+  const { actions } = useWorkoutSessionContext()
+  return actions
+}
 
-export default useWorkoutSessionActions;
+export default useWorkoutSessionActions

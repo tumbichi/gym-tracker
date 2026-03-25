@@ -1,10 +1,10 @@
 'use client'
 
-import * as React from "react"
-import { Check, ChevronsUpDown } from "lucide-react"
+import * as React from 'react'
+import { Check, ChevronsUpDown } from 'lucide-react'
 
-import { cn } from "@core/lib/utils"
-import { Button } from "@core/components/ui/button"
+import { cn } from '@core/lib/utils'
+import { Button } from '@core/components/ui/button'
 import {
   Command,
   CommandEmpty,
@@ -12,12 +12,12 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@core/components/ui/command"
+} from '@core/components/ui/command'
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@core/components/ui/popover"
+} from '@core/components/ui/popover'
 
 interface ComboboxProps {
   options: { label: string; value: string }[]
@@ -27,9 +27,15 @@ interface ComboboxProps {
   onCreate?: (value: string) => void
 }
 
-export function Combobox({ options, value, onChange, placeholder, onCreate }: ComboboxProps) {
+export function Combobox({
+  options,
+  value,
+  onChange,
+  placeholder,
+  onCreate,
+}: ComboboxProps) {
   const [open, setOpen] = React.useState(false)
-  const [search, setSearch] = React.useState("")
+  const [search, setSearch] = React.useState('')
 
   const filteredOptions = search
     ? options.filter((option) =>
@@ -41,21 +47,21 @@ export function Combobox({ options, value, onChange, placeholder, onCreate }: Co
     <Popover open={open} onOpenChange={setOpen} modal={true}>
       <PopoverTrigger asChild>
         <Button
-          variant="outline"
-          role="combobox"
+          variant='outline'
+          role='combobox'
           aria-expanded={open}
-          className="w-full justify-between"
+          className='w-full justify-between'
         >
           {value
             ? options.find((option) => option.value === value)?.label
-            : placeholder || "Select option..."}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            : placeholder || 'Select option...'}
+          <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+      <PopoverContent className='w-[--radix-popover-trigger-width] p-0'>
         <Command>
-          <CommandInput 
-            placeholder="Search..." 
+          <CommandInput
+            placeholder='Search...'
             value={search}
             onValueChange={setSearch}
           />
@@ -63,16 +69,16 @@ export function Combobox({ options, value, onChange, placeholder, onCreate }: Co
             <CommandEmpty>
               {onCreate ? (
                 <Button
-                  className="w-full"
+                  className='w-full'
                   onClick={() => {
                     onCreate(search)
                     setOpen(false)
                   }}
                 >
-                  Create "{search}"
+                  Create &quot;{search}&quot;
                 </Button>
               ) : (
-                "No results found."
+                'No results found.'
               )}
             </CommandEmpty>
             <CommandGroup>
@@ -81,14 +87,14 @@ export function Combobox({ options, value, onChange, placeholder, onCreate }: Co
                   key={option.value}
                   value={option.value}
                   onSelect={(currentValue) => {
-                    onChange(currentValue === value ? "" : currentValue)
+                    onChange(currentValue === value ? '' : currentValue)
                     setOpen(false)
                   }}
                 >
                   <Check
                     className={cn(
-                      "mr-2 h-4 w-4",
-                      value === option.value ? "opacity-100" : "opacity-0"
+                      'mr-2 h-4 w-4',
+                      value === option.value ? 'opacity-100' : 'opacity-0'
                     )}
                   />
                   {option.label}

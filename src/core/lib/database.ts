@@ -1,13 +1,13 @@
-import { Prisma, PrismaClient, Routine } from "@prisma/client";
-import { db as mockDb } from "./db";
+import { Prisma, PrismaClient, Routine } from '@prisma/client'
+import { db as mockDb } from './db'
 
 // Try to create Prisma client, fall back to mock if it fails
-export let prismaClient: PrismaClient | null = null;
+export let prismaClient: PrismaClient | null = null
 
 try {
-  prismaClient = new PrismaClient();
+  prismaClient = new PrismaClient()
 } catch (error) {
-  console.log("⚠️ Prisma client not available, using mock data");
+  console.log('⚠️ Prisma client not available, using mock data')
 }
 
 // Hybrid database that tries Prisma first, falls back to mock
@@ -18,57 +18,57 @@ export const database = {
         if (prismaClient) {
           return await prismaClient.exercise.findMany({
             ...args,
-            orderBy: args?.orderBy ? args.orderBy : { name: "asc" },
-          });
+            orderBy: args?.orderBy ? args.orderBy : { name: 'asc' },
+          })
         }
       } catch (error) {
-        console.log("Using mock data for exercises");
+        console.log('Using mock data for exercises')
       }
-      return mockDb.exercise.findMany();
+      return mockDb.exercise.findMany()
     },
 
     findUnique: async ({ where }: { where: { id: number } }) => {
       try {
         if (prismaClient) {
-          return await prismaClient.exercise.findUnique({ where });
+          return await prismaClient.exercise.findUnique({ where })
         }
       } catch (error) {
-        console.log("Using mock data for exercise");
+        console.log('Using mock data for exercise')
       }
-      return mockDb.exercise.findUnique({ where });
+      return mockDb.exercise.findUnique({ where })
     },
 
     create: async ({ data }: { data: any }) => {
       try {
         if (prismaClient) {
-          return await prismaClient.exercise.create({ data });
+          return await prismaClient.exercise.create({ data })
         }
       } catch (error) {
-        console.log("Using mock data for exercise creation");
+        console.log('Using mock data for exercise creation')
       }
-      return mockDb.exercise.create({ data });
+      return mockDb.exercise.create({ data })
     },
 
     update: async ({ where, data }: { where: { id: number }; data: any }) => {
       try {
         if (prismaClient) {
-          return await prismaClient.exercise.update({ where, data });
+          return await prismaClient.exercise.update({ where, data })
         }
       } catch (error) {
-        console.log("Using mock data for exercise update");
+        console.log('Using mock data for exercise update')
       }
-      return mockDb.exercise.update({ where, data });
+      return mockDb.exercise.update({ where, data })
     },
 
     delete: async ({ where }: { where: { id: number } }) => {
       try {
         if (prismaClient) {
-          return await prismaClient.exercise.delete({ where });
+          return await prismaClient.exercise.delete({ where })
         }
       } catch (error) {
-        console.log("Using mock data for exercise deletion");
+        console.log('Using mock data for exercise deletion')
       }
-      return mockDb.exercise.delete({ where });
+      return mockDb.exercise.delete({ where })
     },
   },
 
@@ -77,7 +77,11 @@ export const database = {
       include,
       where,
       select,
-    }: { include?: any; where?: Prisma.WorkoutSessionWhereInput; select?: Prisma.WorkoutSessionSelect } = {}) => {
+    }: {
+      include?: any
+      where?: Prisma.WorkoutSessionWhereInput
+      select?: Prisma.WorkoutSessionSelect
+    } = {}) => {
       try {
         if (prismaClient) {
           return await prismaClient.workoutSession.findMany({
@@ -89,32 +93,35 @@ export const database = {
                   exercise: true,
                   sets: true,
                 },
-                orderBy: { order: "asc" },
+                orderBy: { order: 'asc' },
               },
             },
-            orderBy: { date: "desc" },
-          });
+            orderBy: { date: 'desc' },
+          })
         }
       } catch (error) {
-        console.log("Using mock data for workout sessions");
+        console.log('Using mock data for workout sessions')
       }
-      return mockDb.workoutSession.findMany({ include });
+      return mockDb.workoutSession.findMany({ include })
     },
 
     count: async ({ where }: { where?: any } = {}) => {
       try {
         if (prismaClient) {
-          return await prismaClient.workoutSession.count({ where });
+          return await prismaClient.workoutSession.count({ where })
         }
       } catch (error) {
-        console.log("Using mock data for session count");
+        console.log('Using mock data for session count')
       }
-      return mockDb.workoutSession.count({ where });
+      return mockDb.workoutSession.count({ where })
     },
   },
 
   setEntry: {
-    findMany: async ({ where, include }: { where?: any; include?: any } = {}) => {
+    findMany: async ({
+      where,
+      include,
+    }: { where?: any; include?: any } = {}) => {
       try {
         if (prismaClient) {
           return await prismaClient.setEntry.findMany({
@@ -127,40 +134,43 @@ export const database = {
                 },
               },
             },
-            orderBy: { createdAt: "desc" },
-          });
+            orderBy: { createdAt: 'desc' },
+          })
         }
       } catch (error) {
-        console.log("Using mock data for set entries");
+        console.log('Using mock data for set entries')
       }
-      return mockDb.setEntry.findMany({ where, include });
+      return mockDb.setEntry.findMany({ where, include })
     },
 
     aggregate: async ({ where, _sum }: { where?: any; _sum?: any } = {}) => {
       try {
         if (prismaClient) {
-          return await prismaClient.setEntry.aggregate({ where, _sum });
+          return await prismaClient.setEntry.aggregate({ where, _sum })
         }
       } catch (error) {
-        console.log("Using mock data for set entry aggregation");
+        console.log('Using mock data for set entry aggregation')
       }
-      return mockDb.setEntry.aggregate({ where, _sum });
+      return mockDb.setEntry.aggregate({ where, _sum })
     },
 
     groupBy: async ({ by, where }: Prisma.SetEntryGroupByArgs) => {
       try {
         if (prismaClient) {
-          return await prismaClient.setEntry.groupBy({ by, where });
+          return await prismaClient.setEntry.groupBy({ by, where })
         }
       } catch (error) {
-        console.log("Using mock data for set entry grouping");
+        console.log('Using mock data for set entry grouping')
       }
-      return mockDb.setEntry.groupBy();
+      return mockDb.setEntry.groupBy()
     },
   },
 
   routine: {
-    findMany: async ({ include, ...restArgs }: Prisma.RoutineFindManyArgs = {}) => {
+    findMany: async ({
+      include,
+      ...restArgs
+    }: Prisma.RoutineFindManyArgs = {}) => {
       try {
         if (prismaClient) {
           return await prismaClient.routine.findMany({
@@ -178,60 +188,63 @@ export const database = {
                     },
                   },
                 },
-          });
+          })
         }
       } catch (error) {
-        console.log("Using mock data for routines");
+        console.log('Using mock data for routines')
       }
-      return mockDb.routine.findMany();
+      return mockDb.routine.findMany()
     },
 
-    findFirst: async ({ where, include }: { where?: any; include?: any } = {}) => {
+    findFirst: async ({
+      where,
+      include,
+    }: { where?: any; include?: any } = {}) => {
       try {
         if (prismaClient) {
-          return await prismaClient.routine.findFirst({ where, include });
+          return await prismaClient.routine.findFirst({ where, include })
         }
       } catch (error) {
-        console.log("Using mock data for routine");
+        console.log('Using mock data for routine')
       }
       // Mock implementation for findFirst if needed
-      const results = await mockDb.routine.findMany();
-      return results.length > 0 ? results[0] : null;
+      const results = await mockDb.routine.findMany()
+      return results.length > 0 ? results[0] : null
     },
     findUnique: async (args: Prisma.RoutineFindUniqueArgs) => {
       try {
         if (prismaClient) {
-          return await prismaClient.routine.findUnique(args);
+          return await prismaClient.routine.findUnique(args)
         }
       } catch (error) {
-        console.log("Using mock data for routine");
+        console.log('Using mock data for routine')
       }
-      return mockDb.routine.findUnique({ where: { id: args.where?.id ?? 1 } });
+      return mockDb.routine.findUnique({ where: { id: args.where?.id ?? 1 } })
     },
 
     create: async (args: Prisma.RoutineCreateArgs) => {
       try {
         if (prismaClient) {
-          return await prismaClient.routine.create(args);
+          return await prismaClient.routine.create(args)
         }
       } catch (error) {
-        console.log("Using mock data for routine creation");
+        console.log('Using mock data for routine creation')
       }
-      return mockDb.routine.create({ data: args.data });
+      return mockDb.routine.create({ data: args.data })
     },
 
     update: async (args: Prisma.RoutineUpdateArgs) => {
       try {
-        return await prismaClient?.routine.update(args);
+        return await prismaClient?.routine.update(args)
       } catch (error) {
-        console.log("Using mock data for routine update");
+        console.log('Using mock data for routine update')
       }
     },
     delete: async (args: Prisma.RoutineDeleteArgs) => {
       try {
-        return await prismaClient?.routine.delete(args);
+        return await prismaClient?.routine.delete(args)
       } catch (error) {
-        console.log("Using mock data for routine deletion");
+        console.log('Using mock data for routine deletion')
       }
     },
   },
@@ -239,17 +252,17 @@ export const database = {
   routineDay: {
     findMany: async (args: Prisma.RoutineDayFindManyArgs) => {
       try {
-        return await prismaClient?.routineDay.findMany(args);
+        return await prismaClient?.routineDay.findMany(args)
       } catch (error) {
-        console.log("Using mock data for routine days");
+        console.log('Using mock data for routine days')
       }
-      return mockDb.routineDay.findMany();
+      return mockDb.routineDay.findMany()
     },
     deleteMany: async (args: Prisma.RoutineDayDeleteManyArgs) => {
       try {
-        return await prismaClient?.routineDay.deleteMany(args);
+        return await prismaClient?.routineDay.deleteMany(args)
       } catch (error) {
-        console.log("Using mock data for routine day deletion");
+        console.log('Using mock data for routine day deletion')
       }
     },
   },
@@ -257,12 +270,12 @@ export const database = {
   routineExercise: {
     deleteMany: async (args: Prisma.RoutineExerciseDeleteManyArgs) => {
       try {
-        return await prismaClient?.routineExercise.deleteMany(args);
+        return await prismaClient?.routineExercise.deleteMany(args)
       } catch (error) {
-        console.log("Using mock data for routine exercise deletion");
+        console.log('Using mock data for routine exercise deletion')
       }
     },
   },
 
   $transaction: prismaClient ? prismaClient.$transaction : undefined,
-};
+}

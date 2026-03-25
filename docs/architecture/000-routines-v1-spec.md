@@ -31,18 +31,19 @@ Formato: `"[12,10,10,8]"` — un JSON array de enteros serializado como string.
 
 **Justificación:**
 
-| Criterio | JSON array en `reps` String | Nueva tabla `RoutineSet` |
-|---|---|---|
-| **Migración** | Solo cambiar el contenido del campo existente. No requiere nueva tabla. Migración de datos simple: `"12"` → `"[12,12,12]"` basado en `series`. | Requiere crear tabla, migrar datos existentes a filas, eliminar campo `reps` y `series` de `RoutineExercise`. Migración compleja con riesgo de pérdida de datos. |
-| **Queries** | Un solo `findMany` con include trae todo. Sin JOINs adicionales. | JOIN extra en cada query de rutina. Más filas en BD. |
-| **Complejidad de código** | Parse/stringify en la capa de tipos TS. Validación con Zod. | Prisma relations adicionales. Más código en actions para CRUD de sets. |
-| **Flexibilidad futura** | Si necesitamos más campos por set (ej. tempo, descanso), migrar a tabla es posible. | Ya está preparado para campos adicionales por set. |
-| **Consistencia con `series`** | `series` se vuelve derivado: `series = reps.length`. Podemos mantener `series` como campo computado o eliminarlo. | `series` se elimina, se cuenta por `COUNT(RoutineSet)`. |
-| **Estrategia update** | La estrategia actual de delete-all + recreate sigue funcionando sin cambios. | Requiere lógica de diff para sets individuales o también delete-all + recreate. |
+| Criterio                      | JSON array en `reps` String                                                                                                                    | Nueva tabla `RoutineSet`                                                                                                                                         |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Migración**                 | Solo cambiar el contenido del campo existente. No requiere nueva tabla. Migración de datos simple: `"12"` → `"[12,12,12]"` basado en `series`. | Requiere crear tabla, migrar datos existentes a filas, eliminar campo `reps` y `series` de `RoutineExercise`. Migración compleja con riesgo de pérdida de datos. |
+| **Queries**                   | Un solo `findMany` con include trae todo. Sin JOINs adicionales.                                                                               | JOIN extra en cada query de rutina. Más filas en BD.                                                                                                             |
+| **Complejidad de código**     | Parse/stringify en la capa de tipos TS. Validación con Zod.                                                                                    | Prisma relations adicionales. Más código en actions para CRUD de sets.                                                                                           |
+| **Flexibilidad futura**       | Si necesitamos más campos por set (ej. tempo, descanso), migrar a tabla es posible.                                                            | Ya está preparado para campos adicionales por set.                                                                                                               |
+| **Consistencia con `series`** | `series` se vuelve derivado: `series = reps.length`. Podemos mantener `series` como campo computado o eliminarlo.                              | `series` se elimina, se cuenta por `COUNT(RoutineSet)`.                                                                                                          |
+| **Estrategia update**         | La estrategia actual de delete-all + recreate sigue funcionando sin cambios.                                                                   | Requiere lógica de diff para sets individuales o también delete-all + recreate.                                                                                  |
 
 **Decisión sobre el campo `series`:** MANTENER `series` como campo en `RoutineExercise`. Es redundante con `reps.length` pero sirve como fuente de verdad rápida para queries que solo necesitan el conteo (ej. vista de lista, badges). La validación en el action garantiza `series === JSON.parse(reps).length`.
 
 **Formato de migración de datos existentes:**
+
 - `"12"` con `series: 3` → `"[12,12,12]"`
 - `"12-10-8"` con `series: 3` → `"[12,10,8]"`
 - `"10-12"` con `series: 3` → `"[10,12,12]"` (pad con último valor)
@@ -54,13 +55,13 @@ Formato: `"[12,10,10,8]"` — un JSON array de enteros serializado como string.
 
 **Justificación:**
 
-| Criterio | `archivedAt DateTime?` | `status` enum |
-|---|---|---|
-| **Simplicidad** | Un campo nullable. `null` = activa, `!null` = archivada. | Requiere definir enum en Prisma, más verboso. |
-| **Query** | `where: { archivedAt: null }` — simple y eficiente. | `where: { status: 'ACTIVE' }` — igual de simple. |
-| **Información** | Sabemos CUÁNDO se archivó. Útil para auditoría. | Solo sabemos el estado actual, no cuándo cambió. |
-| **Extensibilidad** | Si necesitamos más estados (ej. `DRAFT`), hay que migrar a enum. | Ya soporta N estados. |
-| **MVP fit** | Solo necesitamos 2 estados: activa/archivada. Perfecto. | Over-engineering para 2 estados. |
+| Criterio           | `archivedAt DateTime?`                                           | `status` enum                                    |
+| ------------------ | ---------------------------------------------------------------- | ------------------------------------------------ |
+| **Simplicidad**    | Un campo nullable. `null` = activa, `!null` = archivada.         | Requiere definir enum en Prisma, más verboso.    |
+| **Query**          | `where: { archivedAt: null }` — simple y eficiente.              | `where: { status: 'ACTIVE' }` — igual de simple. |
+| **Información**    | Sabemos CUÁNDO se archivó. Útil para auditoría.                  | Solo sabemos el estado actual, no cuándo cambió. |
+| **Extensibilidad** | Si necesitamos más estados (ej. `DRAFT`), hay que migrar a enum. | Ya soporta N estados.                            |
+| **MVP fit**        | Solo necesitamos 2 estados: activa/archivada. Perfecto.          | Over-engineering para 2 estados.                 |
 
 Para el MVP con solo 2 estados, `archivedAt` es más simple, más informativo (timestamp) y suficiente. Si en el futuro necesitamos más estados, la migración a enum es trivial.
 
@@ -112,17 +113,20 @@ model RoutineExercise {
 **Cambios respecto al schema actual:**
 
 En `Routine`:
+
 - `name`: agregar `@db.VarChar(100)` — constraint de longitud
 - Agregar `updatedAt DateTime @updatedAt`
 - Agregar `archivedAt DateTime?`
 - Agregar `@@index([userId])` y `@@index([userId, archivedAt])`
 
 En `RoutineDay`:
+
 - `name`: agregar `@db.VarChar(50)` — constraint de longitud
 - Agregar `onDelete: Cascade` en relación con `Routine`
 - Agregar `@@index([routineId])`
 
 En `RoutineExercise`:
+
 - Eliminar `targetWeight Float?`
 - `reps`: cambiar formato de `"12-10-8"` a `"[12,10,8]"` (JSON array)
 - Agregar `onDelete: Cascade` en relación con `RoutineDay`
@@ -142,23 +146,23 @@ Ejecutar con: `npx prisma migrate dev --name add_routine_management_v1`
 
 #### Campos a AGREGAR
 
-| Tabla | Campo | Tipo | Default | Nullable | Notas |
-|---|---|---|---|---|---|
-| `Routine` | `updatedAt` | `TIMESTAMP(3)` | `now()` | NO | `@updatedAt` — Prisma lo gestiona automáticamente. Para datos existentes, default = `now()`. |
-| `Routine` | `archivedAt` | `TIMESTAMP(3)` | — | SÍ | `null` = rutina activa |
+| Tabla     | Campo        | Tipo           | Default | Nullable | Notas                                                                                        |
+| --------- | ------------ | -------------- | ------- | -------- | -------------------------------------------------------------------------------------------- |
+| `Routine` | `updatedAt`  | `TIMESTAMP(3)` | `now()` | NO       | `@updatedAt` — Prisma lo gestiona automáticamente. Para datos existentes, default = `now()`. |
+| `Routine` | `archivedAt` | `TIMESTAMP(3)` | —       | SÍ       | `null` = rutina activa                                                                       |
 
 #### Campos a ELIMINAR
 
-| Tabla | Campo | Tipo actual | Notas |
-|---|---|---|---|
+| Tabla             | Campo          | Tipo actual        | Notas                                                                                                               |
+| ----------------- | -------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------- |
 | `RoutineExercise` | `targetWeight` | `DOUBLE PRECISION` | Verificar que no hay código que lo lea fuera del módulo routines. El campo `targetWeight` en `SetEntry` NO se toca. |
 
 #### Campos a MODIFICAR (tipo/constraint)
 
-| Tabla | Campo | Antes | Después | Notas |
-|---|---|---|---|---|
-| `Routine.name` | — | `TEXT` | `VARCHAR(100)` | Truncar datos existentes > 100 chars antes de migrar |
-| `RoutineDay.name` | — | `TEXT` | `VARCHAR(50)` | Truncar datos existentes > 50 chars antes de migrar |
+| Tabla             | Campo | Antes  | Después        | Notas                                                |
+| ----------------- | ----- | ------ | -------------- | ---------------------------------------------------- |
+| `Routine.name`    | —     | `TEXT` | `VARCHAR(100)` | Truncar datos existentes > 100 chars antes de migrar |
+| `RoutineDay.name` | —     | `TEXT` | `VARCHAR(50)`  | Truncar datos existentes > 50 chars antes de migrar  |
 
 #### Datos a MIGRAR (en la misma migración, SQL custom)
 
@@ -182,7 +186,7 @@ SET reps = CASE
   -- Si ya es un JSON array (empieza con [), no tocar
   WHEN reps LIKE '[%' THEN reps
   -- Si contiene guiones, split y convertir a JSON array
-  WHEN reps LIKE '%-%' THEN 
+  WHEN reps LIKE '%-%' THEN
     '[' || REPLACE(reps, '-', ',') || ']'
   -- Si es un número simple, repetir N veces según series
   WHEN reps ~ '^\d+$' THEN
@@ -199,18 +203,18 @@ WHERE reps LIKE '[%';
 
 #### Índices a AGREGAR
 
-| Tabla | Índice | Columnas | Justificación |
-|---|---|---|---|
-| `Routine` | `Routine_userId_idx` | `(userId)` | Filtrar rutinas por usuario |
-| `Routine` | `Routine_userId_archivedAt_idx` | `(userId, archivedAt)` | Query principal: rutinas activas de un usuario |
-| `RoutineDay` | `RoutineDay_routineId_idx` | `(routineId)` | FK lookup al cargar días |
-| `RoutineExercise` | `RoutineExercise_routineDayId_idx` | `(routineDayId)` | FK lookup al cargar ejercicios |
+| Tabla             | Índice                             | Columnas               | Justificación                                  |
+| ----------------- | ---------------------------------- | ---------------------- | ---------------------------------------------- |
+| `Routine`         | `Routine_userId_idx`               | `(userId)`             | Filtrar rutinas por usuario                    |
+| `Routine`         | `Routine_userId_archivedAt_idx`    | `(userId, archivedAt)` | Query principal: rutinas activas de un usuario |
+| `RoutineDay`      | `RoutineDay_routineId_idx`         | `(routineId)`          | FK lookup al cargar días                       |
+| `RoutineExercise` | `RoutineExercise_routineDayId_idx` | `(routineDayId)`       | FK lookup al cargar ejercicios                 |
 
 #### Cascade deletes a AGREGAR
 
-| Relación | onDelete |
-|---|---|
-| `RoutineDay.routine` → `Routine` | `Cascade` |
+| Relación                                    | onDelete  |
+| ------------------------------------------- | --------- |
+| `RoutineDay.routine` → `Routine`            | `Cascade` |
 | `RoutineExercise.routineDay` → `RoutineDay` | `Cascade` |
 
 **IMPORTANTE:** Los cascade deletes simplifican `deleteRoutine` — ya no necesitamos borrar manualmente RoutineExercise y RoutineDay antes de borrar Routine. Prisma + PostgreSQL lo hacen automáticamente.
@@ -240,22 +244,22 @@ import type {
   Routine as PrismaRoutine,
   RoutineDay as PrismaRoutineDay,
   RoutineExercise as PrismaRoutineExercise,
-} from "@prisma/client";
+} from '@prisma/client'
 
 /** RoutineExercise con la relación exercise incluida */
 export type RoutineExercise = PrismaRoutineExercise & {
-  exercise: Exercise;
-};
+  exercise: Exercise
+}
 
 /** RoutineDay con sus ejercicios (items) incluidos */
 export type RoutineDay = PrismaRoutineDay & {
-  items: RoutineExercise[];
-};
+  items: RoutineExercise[]
+}
 
 /** Routine completa con días y ejercicios anidados */
 export type Routine = PrismaRoutine & {
-  days: RoutineDay[];
-};
+  days: RoutineDay[]
+}
 
 // =============================================================================
 // FORM TYPES — Estado local del editor (lo que maneja React state)
@@ -264,33 +268,33 @@ export type Routine = PrismaRoutine & {
 /** Una fila de ejercicio en el formulario del editor */
 export interface ExerciseFormItem {
   /** ID del ejercicio seleccionado, null si aún no se eligió */
-  exerciseId: number | null;
+  exerciseId: number | null
   /** Posición dentro del día (1-based) */
-  order: number;
+  order: number
   /** Número de series (1-10). Debe coincidir con repsPerSet.length */
-  series: number;
+  series: number
   /** Reps por cada serie. Array de enteros, ej: [12, 10, 10, 8] */
-  repsPerSet: number[];
+  repsPerSet: number[]
   /** Notas opcionales del ejercicio */
-  notes: string;
+  notes: string
 }
 
 /** Un día en el formulario del editor */
 export interface DayFormData {
   /** Nombre editable del día, max 50 chars. Default: "Día N" */
-  name: string;
+  name: string
   /** Posición del día (1-based) */
-  order: number;
+  order: number
   /** Ejercicios del día */
-  items: ExerciseFormItem[];
+  items: ExerciseFormItem[]
 }
 
 /** Estado completo del formulario de rutina (crear o editar) */
 export interface RoutineFormData {
   /** Nombre de la rutina, max 100 chars */
-  name: string;
+  name: string
   /** Días de la rutina (1-7) */
-  days: DayFormData[];
+  days: DayFormData[]
 }
 
 // =============================================================================
@@ -299,19 +303,19 @@ export interface RoutineFormData {
 
 /** Payload para crear una rutina (server action input) */
 export interface CreateRoutinePayload {
-  name: string;
+  name: string
   days: {
-    name: string;
-    order: number;
+    name: string
+    order: number
     items: {
-      exerciseId: number;
-      order: number;
-      series: number;
+      exerciseId: number
+      order: number
+      series: number
       /** JSON string: "[12,10,10,8]" */
-      reps: string;
-      notes: string | null;
-    }[];
-  }[];
+      reps: string
+      notes: string | null
+    }[]
+  }[]
 }
 
 /** Payload para actualizar una rutina (server action input) */
@@ -319,10 +323,10 @@ export interface UpdateRoutinePayload extends CreateRoutinePayload {}
 
 /** Payload para crear un ejercicio on-the-fly */
 export interface CreateExercisePayload {
-  name: string;
-  primaryGroup?: string;
-  equipment?: string;
-  notes?: string;
+  name: string
+  primaryGroup?: string
+  equipment?: string
+  notes?: string
 }
 
 // =============================================================================
@@ -331,18 +335,18 @@ export interface CreateExercisePayload {
 
 /** Resumen de rutina para la tarjeta en la lista */
 export interface RoutineCardData {
-  id: number;
-  name: string;
-  daysCount: number;
-  activeDaysCount: number;
-  totalExercises: number;
-  isArchived: boolean;
-  createdAt: Date;
+  id: number
+  name: string
+  daysCount: number
+  activeDaysCount: number
+  totalExercises: number
+  isArchived: boolean
+  createdAt: Date
   /** Preview de los primeros 3 días */
   dayPreviews: {
-    name: string;
-    exerciseCount: number;
-  }[];
+    name: string
+    exerciseCount: number
+  }[]
 }
 
 // =============================================================================
@@ -351,9 +355,9 @@ export interface RoutineCardData {
 
 /** Resultado de una acción de mutación */
 export interface ActionResult<T = void> {
-  success: boolean;
-  data?: T;
-  error?: string;
+  success: boolean
+  data?: T
+  error?: string
 }
 ```
 
@@ -367,21 +371,24 @@ export interface ActionResult<T = void> {
 /** Parsea el campo reps de la BD (JSON string) a array de números */
 export function parseReps(repsJson: string): number[] {
   try {
-    const parsed = JSON.parse(repsJson);
-    if (Array.isArray(parsed) && parsed.every((n) => typeof n === "number")) {
-      return parsed;
+    const parsed = JSON.parse(repsJson)
+    if (Array.isArray(parsed) && parsed.every((n) => typeof n === 'number')) {
+      return parsed
     }
   } catch {
     // Fallback para formato legacy "12-10-8"
-    const parts = repsJson.split("-").map(Number).filter((n) => !isNaN(n));
-    if (parts.length > 0) return parts;
+    const parts = repsJson
+      .split('-')
+      .map(Number)
+      .filter((n) => !isNaN(n))
+    if (parts.length > 0) return parts
   }
-  return [10]; // Default fallback
+  return [10] // Default fallback
 }
 
 /** Serializa array de reps a JSON string para la BD */
 export function serializeReps(repsPerSet: number[]): string {
-  return JSON.stringify(repsPerSet);
+  return JSON.stringify(repsPerSet)
 }
 
 /** Convierte una Routine de BD a RoutineFormData para el editor */
@@ -396,14 +403,16 @@ export function routineToFormData(routine: Routine): RoutineFormData {
         order: item.order,
         series: item.series,
         repsPerSet: parseReps(item.reps),
-        notes: item.notes ?? "",
+        notes: item.notes ?? '',
       })),
     })),
-  };
+  }
 }
 
 /** Convierte RoutineFormData del editor a CreateRoutinePayload para el action */
-export function formDataToPayload(formData: RoutineFormData): CreateRoutinePayload {
+export function formDataToPayload(
+  formData: RoutineFormData
+): CreateRoutinePayload {
   return {
     name: formData.name.trim(),
     days: formData.days.map((day) => ({
@@ -419,7 +428,7 @@ export function formDataToPayload(formData: RoutineFormData): CreateRoutinePaylo
           notes: item.notes.trim() || null,
         })),
     })),
-  };
+  }
 }
 
 /** Convierte una Routine a RoutineCardData para la vista de lista */
@@ -436,7 +445,7 @@ export function routineToCardData(routine: Routine): RoutineCardData {
       name: d.name,
       exerciseCount: d.items.length,
     })),
-  };
+  }
 }
 ```
 
@@ -459,10 +468,12 @@ export async function getRoutines(): Promise<Routine[]>
 **Descripción:** Obtiene todas las rutinas ACTIVAS (no archivadas) del usuario, con días y ejercicios anidados, ordenadas por fecha de creación descendente.
 
 **Cambios respecto a la versión actual:**
+
 - Agregar filtro `archivedAt: null` al `where`
 - Agregar `userId` al `where` (actualmente no filtra por usuario)
 
 **Query:**
+
 ```typescript
 database.routine.findMany({
   where: { userId, archivedAt: null },
@@ -471,13 +482,13 @@ database.routine.findMany({
       include: {
         items: {
           include: { exercise: true },
-          orderBy: { order: "asc" },
+          orderBy: { order: 'asc' },
         },
       },
-      orderBy: { order: "asc" },
+      orderBy: { order: 'asc' },
     },
   },
-  orderBy: { createdAt: "desc" },
+  orderBy: { createdAt: 'desc' },
 })
 ```
 
@@ -512,38 +523,56 @@ export async function createRoutine(
 **Descripción:** Crea una nueva rutina con sus días y ejercicios. Valida el payload con Zod antes de persistir.
 
 **Cambios respecto a la versión actual:**
+
 - Recibe `CreateRoutinePayload` en vez de `RoutineFormData` (tipos limpios, sin `targetWeight`)
 - Eliminar `weeks` del create (siempre 1 en MVP)
 - Agregar validación Zod server-side
 - El campo `reps` ya viene como JSON string `"[12,10,8]"` desde el payload
 
 **Validación Zod (server-side):**
+
 ```typescript
 const CreateRoutineSchema = z.object({
   name: z.string().min(1).max(100),
-  days: z.array(z.object({
-    name: z.string().min(1).max(50),
-    order: z.number().int().positive(),
-    items: z.array(z.object({
-      exerciseId: z.number().int().positive(),
-      order: z.number().int().positive(),
-      series: z.number().int().min(1).max(10),
-      reps: z.string().refine((val) => {
-        try {
-          const arr = JSON.parse(val);
-          return Array.isArray(arr) && arr.length >= 1 && arr.length <= 10
-            && arr.every((n: unknown) => typeof n === "number" && n >= 1 && n <= 50);
-        } catch { return false; }
-      }, "Formato de reps inválido"),
-      notes: z.string().nullable(),
-    })),
-  })).min(1).max(7),
-});
+  days: z
+    .array(
+      z.object({
+        name: z.string().min(1).max(50),
+        order: z.number().int().positive(),
+        items: z.array(
+          z.object({
+            exerciseId: z.number().int().positive(),
+            order: z.number().int().positive(),
+            series: z.number().int().min(1).max(10),
+            reps: z.string().refine((val) => {
+              try {
+                const arr = JSON.parse(val)
+                return (
+                  Array.isArray(arr) &&
+                  arr.length >= 1 &&
+                  arr.length <= 10 &&
+                  arr.every(
+                    (n: unknown) => typeof n === 'number' && n >= 1 && n <= 50
+                  )
+                )
+              } catch {
+                return false
+              }
+            }, 'Formato de reps inválido'),
+            notes: z.string().nullable(),
+          })
+        ),
+      })
+    )
+    .min(1)
+    .max(7),
+})
 ```
 
 **`revalidatePath`:** `/routines`
 
 **Notas:**
+
 - `userId` hardcodeado a `1` (TODO: auth)
 - `weeks` hardcodeado a `1` (MVP: solo 1 semana)
 - Validar que `series === JSON.parse(reps).length` en el schema Zod
@@ -564,20 +593,24 @@ export async function updateRoutine(
 **¿Sigue siendo válida la estrategia delete-all + recreate?**
 
 **SÍ, con los cascade deletes.** Justificación:
+
 - Los IDs de `RoutineDay` y `RoutineExercise` NO son referenciados por otras tablas (no hay FK apuntando a ellos desde fuera del módulo).
 - `WorkoutSession` referencia `Routine.id`, no `RoutineDay.id` ni `RoutineExercise.id`.
 - `SetEntry` referencia `Exercise.id`, no `RoutineExercise.id`.
 - Con cascade deletes en el schema, basta con borrar los `RoutineDay` del routine y Prisma borra los `RoutineExercise` automáticamente.
 
 **Simplificación con cascades:**
+
 ```typescript
 // Antes (actual): 3 operaciones manuales
-await database.routineExercise.deleteMany({ where: { routineDayId: { in: dayIds } } });
-await database.routineDay.deleteMany({ where: { routineId: id } });
+await database.routineExercise.deleteMany({
+  where: { routineDayId: { in: dayIds } },
+})
+await database.routineDay.deleteMany({ where: { routineId: id } })
 // + update con create
 
 // Después (con cascade): 1 operación + update
-await database.routineDay.deleteMany({ where: { routineId: id } });
+await database.routineDay.deleteMany({ where: { routineId: id } })
 // Los RoutineExercise se borran automáticamente por cascade
 // + update con create
 ```
@@ -591,37 +624,41 @@ await database.routineDay.deleteMany({ where: { routineId: id } });
 ### 4.5 `deleteRoutine(id)`
 
 ```typescript
-export async function deleteRoutine(id: number): Promise<{ deleted: boolean; archived: boolean }>
+export async function deleteRoutine(
+  id: number
+): Promise<{ deleted: boolean; archived: boolean }>
 ```
 
 **Descripción:** Elimina una rutina. Si tiene sesiones de entrenamiento históricas, la ARCHIVA en vez de eliminarla. Retorna qué acción se tomó.
 
 **Lógica:**
+
 ```typescript
 // 1. Verificar que la rutina existe
 const routine = await database.routine.findUnique({
   where: { id },
   include: { sessions: { select: { id: true }, take: 1 } },
-});
-if (!routine) throw new Error("Rutina no encontrada");
+})
+if (!routine) throw new Error('Rutina no encontrada')
 
 // 2. Si tiene sesiones históricas → archivar
 if (routine.sessions.length > 0) {
   await database.routine.update({
     where: { id },
     data: { archivedAt: new Date() },
-  });
-  revalidatePath("/routines");
-  return { deleted: false, archived: true };
+  })
+  revalidatePath('/routines')
+  return { deleted: false, archived: true }
 }
 
 // 3. Si NO tiene sesiones → hard delete (cascade borra days + exercises)
-await database.routine.delete({ where: { id } });
-revalidatePath("/routines");
-return { deleted: true, archived: false };
+await database.routine.delete({ where: { id } })
+revalidatePath('/routines')
+return { deleted: true, archived: false }
 ```
 
 **Cambios respecto a la versión actual:**
+
 - Agrega verificación de sesiones históricas
 - Usa cascade deletes (ya no necesita borrar manualmente days/exercises)
 - Retorna resultado tipado para que el UI muestre el toast correcto
@@ -639,15 +676,18 @@ export async function archiveRoutine(id: number): Promise<Routine>
 **Descripción:** Archiva una rutina (soft delete). La rutina deja de aparecer en la lista pero sus datos se preservan.
 
 **Lógica:**
+
 ```typescript
 const routine = await database.routine.update({
   where: { id },
   data: { archivedAt: new Date() },
-  include: { /* full include */ },
-});
-revalidatePath("/routines");
-revalidatePath(`/routines/${id}`);
-return routine;
+  include: {
+    /* full include */
+  },
+})
+revalidatePath('/routines')
+revalidatePath(`/routines/${id}`)
+return routine
 ```
 
 **`revalidatePath`:** `/routines`, `/routines/${id}`
@@ -663,15 +703,18 @@ export async function unarchiveRoutine(id: number): Promise<Routine>
 **Descripción:** Desarchiva una rutina. Vuelve a aparecer en la lista activa.
 
 **Lógica:**
+
 ```typescript
 const routine = await database.routine.update({
   where: { id },
   data: { archivedAt: null },
-  include: { /* full include */ },
-});
-revalidatePath("/routines");
-revalidatePath(`/routines/${id}`);
-return routine;
+  include: {
+    /* full include */
+  },
+})
+revalidatePath('/routines')
+revalidatePath(`/routines/${id}`)
+return routine
 ```
 
 **`revalidatePath`:** `/routines`, `/routines/${id}`
@@ -705,20 +748,21 @@ export async function createExercise(
 **Descripción:** Crea un ejercicio on-the-fly desde el editor de rutinas. Genera el slug automáticamente.
 
 **Lógica:**
+
 ```typescript
 const slug = payload.name
   .toLowerCase()
-  .normalize("NFD")
-  .replace(/[\u0300-\u036f]/g, "")
-  .replace(/[^a-z0-9]+/g, "-")
-  .replace(/^-|-$/g, "");
+  .normalize('NFD')
+  .replace(/[\u0300-\u036f]/g, '')
+  .replace(/[^a-z0-9]+/g, '-')
+  .replace(/^-|-$/g, '')
 
 // Verificar slug único, agregar sufijo si existe
-let finalSlug = slug;
-let counter = 1;
+let finalSlug = slug
+let counter = 1
 while (await database.exercise.findUnique({ where: { slug: finalSlug } })) {
-  finalSlug = `${slug}-${counter}`;
-  counter++;
+  finalSlug = `${slug}-${counter}`
+  counter++
 }
 
 const exercise = await database.exercise.create({
@@ -729,20 +773,21 @@ const exercise = await database.exercise.create({
     equipment: payload.equipment?.trim() || null,
     notes: payload.notes?.trim() || null,
   },
-});
+})
 
-revalidatePath("/routines"); // Para refrescar el catálogo en el picker
-return exercise;
+revalidatePath('/routines') // Para refrescar el catálogo en el picker
+return exercise
 ```
 
 **Validación Zod:**
+
 ```typescript
 const CreateExerciseSchema = z.object({
   name: z.string().min(1).max(100),
   primaryGroup: z.string().max(50).optional(),
   equipment: z.string().max(50).optional(),
   notes: z.string().max(500).optional(),
-});
+})
 ```
 
 **`revalidatePath`:** `/routines`
@@ -756,12 +801,14 @@ const CreateExerciseSchema = z.object({
 **Decisión: NO crear actions separadas. Manejar inline en `updateRoutine`.**
 
 **Justificación:**
+
 - Agregar/eliminar días es parte del flujo de edición, no una operación independiente.
 - El editor maneja el estado local completo de la rutina. Al guardar, `updateRoutine` recibe el estado final con los días agregados/eliminados.
 - Crear actions granulares (add/remove day) requeriría sincronizar estado local con estado de BD en cada operación, añadiendo complejidad sin beneficio.
 - La estrategia delete-all + recreate ya maneja esto naturalmente.
 
 **Flujo:**
+
 1. Usuario agrega día → se agrega al state local `RoutineFormData.days`
 2. Usuario elimina día (si no tiene ejercicios) → se elimina del state local
 3. Usuario guarda → `updateRoutine` recibe el estado final completo
@@ -772,34 +819,34 @@ const CreateExerciseSchema = z.object({
 
 ### Archivos del módulo `src/modules/routines/`
 
-| Estado | Ruta | Responsabilidad |
-|---|---|---|
-| **CREAR** | `types/index.ts` | Tipos de dominio, formulario, payload, vista y helpers de conversión |
-| **MODIFICAR** | `actions/routines.actions.ts` | Server actions refactorizados con nuevos tipos, validación Zod, archive/unarchive, createExercise |
-| **MODIFICAR** | `features/routine-list.feature.tsx` | Orquestador de lista: usar nuevos tipos, manejar resultado de delete (archived vs deleted), toast diferenciado |
-| **MODIFICAR** | `features/routine-editor.feature.tsx` | Refactor completo: manejar create + update, estado con `RoutineFormData` tipado, agregar/eliminar días, reps por serie como array |
-| **MODIFICAR** | `features/routine-details.tsx` | Adaptar a nuevos tipos. Mostrar banner si rutina archivada con botón desarchivar |
-| **ELIMINAR** | `features/routine-detail.feature.tsx` | Duplicado de `routine-details.tsx`. Consolidar en uno solo |
-| **MODIFICAR** | `components/RoutineCard.tsx` | Eliminar import de feature (viola Smart/Dumb). Usar solo props. Eliminar import de `@core/lib/db` |
-| **CREAR** | `components/DayEditor.tsx` | Editor de un día: nombre editable (Input), lista de ExerciseRow, botón agregar ejercicio, botón eliminar día |
-| **CREAR** | `components/ExerciseRow.tsx` | Fila de ejercicio: picker, stepper series, N filas de stepper reps, notas, botones ↑↓, eliminar |
-| **MODIFICAR** | `components/ExercisePicker.tsx` | Selector con CommandDialog (evita conflicto con Dialog padre). Formulario inline para crear ejercicios |
-| **ELIMINAR** | `components/CreateExerciseModal.tsx` | Reemplazado por formulario inline en ExercisePicker |
-| **MODIFICAR** | `components/CreateRoutineDialog.tsx` | Adaptar a nuevos tipos. Corregir props (actualmente recibe `onExercisesUpdate` que no usa el padre) |
-| **MODIFICAR** | `components/routine-details-display.tsx` | Adaptar a nuevos tipos. Mostrar reps como lista por serie en vez de string |
-| **MODIFICAR** | `components/RoutineExerciseDetailsItem.tsx` | Adaptar a nuevos tipos. Mostrar reps parseados, eliminar targetWeight |
-| **ELIMINAR** | `components/RoutineDayCard.tsx` | Reemplazado por `DayEditor.tsx` |
-| **ELIMINAR** | `components/RoutineExerciseItem.tsx` | Reemplazado por `ExerciseRow.tsx` |
+| Estado        | Ruta                                        | Responsabilidad                                                                                                                   |
+| ------------- | ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **CREAR**     | `types/index.ts`                            | Tipos de dominio, formulario, payload, vista y helpers de conversión                                                              |
+| **MODIFICAR** | `actions/routines.actions.ts`               | Server actions refactorizados con nuevos tipos, validación Zod, archive/unarchive, createExercise                                 |
+| **MODIFICAR** | `features/routine-list.feature.tsx`         | Orquestador de lista: usar nuevos tipos, manejar resultado de delete (archived vs deleted), toast diferenciado                    |
+| **MODIFICAR** | `features/routine-editor.feature.tsx`       | Refactor completo: manejar create + update, estado con `RoutineFormData` tipado, agregar/eliminar días, reps por serie como array |
+| **MODIFICAR** | `features/routine-details.tsx`              | Adaptar a nuevos tipos. Mostrar banner si rutina archivada con botón desarchivar                                                  |
+| **ELIMINAR**  | `features/routine-detail.feature.tsx`       | Duplicado de `routine-details.tsx`. Consolidar en uno solo                                                                        |
+| **MODIFICAR** | `components/RoutineCard.tsx`                | Eliminar import de feature (viola Smart/Dumb). Usar solo props. Eliminar import de `@core/lib/db`                                 |
+| **CREAR**     | `components/DayEditor.tsx`                  | Editor de un día: nombre editable (Input), lista de ExerciseRow, botón agregar ejercicio, botón eliminar día                      |
+| **CREAR**     | `components/ExerciseRow.tsx`                | Fila de ejercicio: picker, stepper series, N filas de stepper reps, notas, botones ↑↓, eliminar                                   |
+| **MODIFICAR** | `components/ExercisePicker.tsx`             | Selector con CommandDialog (evita conflicto con Dialog padre). Formulario inline para crear ejercicios                            |
+| **ELIMINAR**  | `components/CreateExerciseModal.tsx`        | Reemplazado por formulario inline en ExercisePicker                                                                               |
+| **MODIFICAR** | `components/CreateRoutineDialog.tsx`        | Adaptar a nuevos tipos. Corregir props (actualmente recibe `onExercisesUpdate` que no usa el padre)                               |
+| **MODIFICAR** | `components/routine-details-display.tsx`    | Adaptar a nuevos tipos. Mostrar reps como lista por serie en vez de string                                                        |
+| **MODIFICAR** | `components/RoutineExerciseDetailsItem.tsx` | Adaptar a nuevos tipos. Mostrar reps parseados, eliminar targetWeight                                                             |
+| **ELIMINAR**  | `components/RoutineDayCard.tsx`             | Reemplazado por `DayEditor.tsx`                                                                                                   |
+| **ELIMINAR**  | `components/RoutineExerciseItem.tsx`        | Reemplazado por `ExerciseRow.tsx`                                                                                                 |
 
 ### Archivos fuera del módulo
 
-| Estado | Ruta | Responsabilidad |
-|---|---|---|
-| **MODIFICAR** | `prisma/schema.prisma` | Cambios de schema documentados en Sección 2 |
-| **CREAR** | `prisma/migrations/XXXXXX_add_routine_management_v1/migration.sql` | Migración generada + SQL custom para datos |
-| **MODIFICAR** | `src/core/types/index.ts` | Eliminar `RoutineDay` type (mover al módulo routines). Mantener `SetEntry` y `WorkoutExercise` |
-| **VERIFICAR** | `src/app/routines/page.tsx` | Verificar que usa `getRoutines()` y pasa datos a `RoutineListFeature` |
-| **VERIFICAR** | `src/app/routines/[id]/page.tsx` | Verificar que usa `getRoutineById()` y pasa datos a `RoutineDetailsFeature` |
+| Estado        | Ruta                                                               | Responsabilidad                                                                                |
+| ------------- | ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
+| **MODIFICAR** | `prisma/schema.prisma`                                             | Cambios de schema documentados en Sección 2                                                    |
+| **CREAR**     | `prisma/migrations/XXXXXX_add_routine_management_v1/migration.sql` | Migración generada + SQL custom para datos                                                     |
+| **MODIFICAR** | `src/core/types/index.ts`                                          | Eliminar `RoutineDay` type (mover al módulo routines). Mantener `SetEntry` y `WorkoutExercise` |
+| **VERIFICAR** | `src/app/routines/page.tsx`                                        | Verificar que usa `getRoutines()` y pasa datos a `RoutineListFeature`                          |
+| **VERIFICAR** | `src/app/routines/[id]/page.tsx`                                   | Verificar que usa `getRoutineById()` y pasa datos a `RoutineDetailsFeature`                    |
 
 ### Archivos a NO tocar
 
@@ -817,19 +864,20 @@ const CreateExerciseSchema = z.object({
 ```typescript
 interface RoutineCardProps {
   /** Datos de la rutina para mostrar */
-  routine: Routine;
+  routine: Routine
   /** Callback al presionar eliminar. Recibe el ID de la rutina */
-  onDelete: (routineId: number) => void;
+  onDelete: (routineId: number) => void
   /** Callback al presionar editar. Recibe la rutina completa */
-  onEdit: (routine: Routine) => void;
+  onEdit: (routine: Routine) => void
   /** Callback al presionar ver detalle. Recibe el ID */
-  onView: (routineId: number) => void;
+  onView: (routineId: number) => void
   /** Si la tarjeta está en estado de carga (eliminando) */
-  isDeleting?: boolean;
+  isDeleting?: boolean
 }
 ```
 
 **Notas:**
+
 - ELIMINAR el import de `RoutineEditor` (un Dumb no debe importar un Feature)
 - ELIMINAR el import de `@core/lib/db` (import roto, Exercise viene de `@prisma/client`)
 - ELIMINAR el `useState` interno para `isDeleting` — el padre controla el estado
@@ -843,13 +891,14 @@ interface RoutineCardProps {
 ```typescript
 interface RoutineListFeatureProps {
   /** Rutinas iniciales cargadas desde el server component */
-  initialRoutines: Routine[];
+  initialRoutines: Routine[]
   /** Catálogo de ejercicios para el editor */
-  initialExercises: Exercise[];
+  initialExercises: Exercise[]
 }
 ```
 
 **Estado interno:**
+
 ```typescript
 // Estado
 const [routines, setRoutines] = useState<Routine[]>(initialRoutines);
@@ -889,19 +938,20 @@ handleExerciseCreated(exercise: Exercise): void
 ```typescript
 interface RoutineEditorFeatureProps {
   /** Rutina existente para editar, o null para crear nueva */
-  routine: Routine | null;
+  routine: Routine | null
   /** Catálogo de ejercicios disponibles */
-  exercises: Exercise[];
+  exercises: Exercise[]
   /** Callback cuando se guarda exitosamente (create o update) */
-  onSaved: (routine: Routine) => void;
+  onSaved: (routine: Routine) => void
   /** Callback cuando se cancela */
-  onCancel: () => void;
+  onCancel: () => void
   /** Callback cuando se crea un ejercicio on-the-fly */
-  onExerciseCreated: (exercise: Exercise) => void;
+  onExerciseCreated: (exercise: Exercise) => void
 }
 ```
 
 **Estado interno:**
+
 ```typescript
 // Estado del formulario
 const [formData, setFormData] = useState<RoutineFormData>(
@@ -953,37 +1003,38 @@ handleExerciseCreated(exercise: Exercise): void
 ```typescript
 interface DayEditorProps {
   /** Datos del día */
-  day: DayFormData;
+  day: DayFormData
   /** Índice del día en el array (para display "Día N" si nombre vacío) */
-  dayIndex: number;
+  dayIndex: number
   /** Catálogo de ejercicios para los pickers */
-  exercises: Exercise[];
+  exercises: Exercise[]
   /** Si es el único día (no se puede eliminar) */
-  isOnlyDay: boolean;
+  isOnlyDay: boolean
   /** Callback al cambiar el nombre del día */
-  onNameChange: (name: string) => void;
+  onNameChange: (name: string) => void
   /** Callback al eliminar el día */
-  onRemove: () => void;
+  onRemove: () => void
   /** Callback al agregar un ejercicio */
-  onAddExercise: () => void;
+  onAddExercise: () => void
   /** Callback al eliminar un ejercicio */
-  onRemoveExercise: (itemIndex: number) => void;
+  onRemoveExercise: (itemIndex: number) => void
   /** Callback al mover un ejercicio */
-  onMoveExercise: (itemIndex: number, direction: "up" | "down") => void;
+  onMoveExercise: (itemIndex: number, direction: 'up' | 'down') => void
   /** Callback al cambiar el ejercicio seleccionado */
-  onExerciseSelect: (itemIndex: number, exerciseId: number) => void;
+  onExerciseSelect: (itemIndex: number, exerciseId: number) => void
   /** Callback al cambiar el número de series */
-  onSeriesChange: (itemIndex: number, series: number) => void;
+  onSeriesChange: (itemIndex: number, series: number) => void
   /** Callback al cambiar las reps de una serie específica */
-  onRepChange: (itemIndex: number, setIndex: number, reps: number) => void;
+  onRepChange: (itemIndex: number, setIndex: number, reps: number) => void
   /** Callback al cambiar las notas de un ejercicio */
-  onNotesChange: (itemIndex: number, notes: string) => void;
+  onNotesChange: (itemIndex: number, notes: string) => void
   /** Callback al solicitar crear un ejercicio on-the-fly */
-  onCreateExercise: (itemIndex: number, name: string) => void;
+  onCreateExercise: (itemIndex: number, name: string) => void
 }
 ```
 
 **Notas:**
+
 - El nombre del día es un `Input` editable con placeholder `Día ${dayIndex + 1}`
 - El botón eliminar día está deshabilitado si `isOnlyDay` es true O si `day.items.length > 0`
 - Cuando `day.items.length > 0` y se intenta eliminar, mostrar tooltip "Eliminá los ejercicios primero"
@@ -995,33 +1046,34 @@ interface DayEditorProps {
 ```typescript
 interface ExerciseRowProps {
   /** Datos del ejercicio en el formulario */
-  item: ExerciseFormItem;
+  item: ExerciseFormItem
   /** Índice del item dentro del día */
-  itemIndex: number;
+  itemIndex: number
   /** Si es el primer item (deshabilita ↑) */
-  isFirst: boolean;
+  isFirst: boolean
   /** Si es el último item (deshabilita ↓) */
-  isLast: boolean;
+  isLast: boolean
   /** Catálogo de ejercicios para el picker */
-  exercises: Exercise[];
+  exercises: Exercise[]
   /** Callback al seleccionar un ejercicio */
-  onExerciseSelect: (exerciseId: number) => void;
+  onExerciseSelect: (exerciseId: number) => void
   /** Callback al cambiar el número de series */
-  onSeriesChange: (series: number) => void;
+  onSeriesChange: (series: number) => void
   /** Callback al cambiar las reps de una serie específica */
-  onRepChange: (setIndex: number, reps: number) => void;
+  onRepChange: (setIndex: number, reps: number) => void
   /** Callback al cambiar las notas */
-  onNotesChange: (notes: string) => void;
+  onNotesChange: (notes: string) => void
   /** Callback al eliminar este ejercicio */
-  onRemove: () => void;
+  onRemove: () => void
   /** Callback al mover este ejercicio */
-  onMove: (direction: "up" | "down") => void;
+  onMove: (direction: 'up' | 'down') => void
   /** Callback al solicitar crear ejercicio on-the-fly */
-  onCreateExercise: (name: string) => void;
+  onCreateExercise: (name: string) => void
 }
 ```
 
 **Layout del componente:**
+
 ```
 ┌─────────────────────────────────────────────────┐
 │ [⋮]  [ExercisePicker ▼]              [↑][↓][🗑] │
@@ -1038,6 +1090,7 @@ interface ExerciseRowProps {
 ```
 
 **Notas:**
+
 - Las filas de reps se renderizan dinámicamente según `item.repsPerSet.length`
 - Cada fila usa `NumberInputStepper` con min=1, max=50
 - El stepper de series usa `NumberInputStepper` con min=1, max=10
@@ -1050,13 +1103,13 @@ interface ExerciseRowProps {
 ```typescript
 interface ExercisePickerProps {
   /** Lista de ejercicios disponibles */
-  exercises: Exercise[];
+  exercises: Exercise[]
   /** ID del ejercicio seleccionado actualmente */
-  value: number | null;
+  value: number | null
   /** Callback al seleccionar un ejercicio */
-  onSelect: (exerciseId: number) => void;
+  onSelect: (exerciseId: number) => void
   /** Callback al solicitar crear un ejercicio nuevo */
-  onCreate: (name: string) => void;
+  onCreate: (name: string) => void
 }
 ```
 
@@ -1069,19 +1122,20 @@ interface ExercisePickerProps {
 ```typescript
 interface CreateExerciseModalProps {
   /** Si el modal está abierto */
-  open: boolean;
+  open: boolean
   /** Callback al cambiar el estado del modal */
-  onOpenChange: (open: boolean) => void;
+  onOpenChange: (open: boolean) => void
   /** Nombre inicial del ejercicio (pre-llenado desde el picker) */
-  initialName: string;
+  initialName: string
   /** Callback al enviar el formulario. Recibe el payload, el padre llama al action */
-  onSubmit: (payload: CreateExercisePayload) => void;
+  onSubmit: (payload: CreateExercisePayload) => void
   /** Si el formulario está en estado de envío */
-  isSubmitting?: boolean;
+  isSubmitting?: boolean
 }
 ```
 
 **Notas:**
+
 - Evaluar si se puede reusar `src/core/components/exercise-form.tsx` existente dentro de este modal
 - Si `exercise-form.tsx` ya maneja la creación, este componente es solo un wrapper de Dialog + ExerciseForm
 - Campos: nombre (requerido), grupo muscular (select con opciones predefinidas), equipamiento (select con opciones predefinidas), notas (textarea opcional)
@@ -1177,30 +1231,34 @@ Este es el flujo más crítico del editor. La lógica vive en `RoutineEditorFeat
 **Invariante:** Al cambiar el número de series, las filas de reps existentes NUNCA pierden sus valores.
 
 ```typescript
-function handleSeriesChange(dayIndex: number, itemIndex: number, newSeries: number): void {
+function handleSeriesChange(
+  dayIndex: number,
+  itemIndex: number,
+  newSeries: number
+): void {
   setFormData((prev) => {
-    const newDays = structuredClone(prev.days);
-    const item = newDays[dayIndex].items[itemIndex];
-    const currentReps = item.repsPerSet;
-    const currentLength = currentReps.length;
+    const newDays = structuredClone(prev.days)
+    const item = newDays[dayIndex].items[itemIndex]
+    const currentReps = item.repsPerSet
+    const currentLength = currentReps.length
 
     if (newSeries > currentLength) {
       // AGREGAR filas: el valor default = última fila existente
-      const lastValue = currentReps[currentLength - 1] ?? 10;
+      const lastValue = currentReps[currentLength - 1] ?? 10
       const newReps = [
         ...currentReps,
         ...Array(newSeries - currentLength).fill(lastValue),
-      ];
-      item.repsPerSet = newReps;
+      ]
+      item.repsPerSet = newReps
     } else if (newSeries < currentLength) {
       // ELIMINAR filas: truncar desde el final, preservar las primeras
-      item.repsPerSet = currentReps.slice(0, newSeries);
+      item.repsPerSet = currentReps.slice(0, newSeries)
     }
     // Si newSeries === currentLength, no hacer nada
 
-    item.series = newSeries;
-    return { ...prev, days: newDays };
-  });
+    item.series = newSeries
+    return { ...prev, days: newDays }
+  })
 }
 ```
 
@@ -1245,10 +1303,10 @@ function handleRepChange(
   reps: number
 ): void {
   setFormData((prev) => {
-    const newDays = structuredClone(prev.days);
-    newDays[dayIndex].items[itemIndex].repsPerSet[setIndex] = reps;
-    return { ...prev, days: newDays };
-  });
+    const newDays = structuredClone(prev.days)
+    newDays[dayIndex].items[itemIndex].repsPerSet[setIndex] = reps
+    return { ...prev, days: newDays }
+  })
 }
 ```
 
@@ -1260,15 +1318,15 @@ function handleRepChange(
 
 ### 8.1 Riesgos Técnicos
 
-| # | Riesgo | Severidad | Mitigación |
-|---|---|---|---|
-| R1 | **Migración de datos de `reps`**: El SQL custom para convertir `"12-10-8"` a `"[12,10,8]"` puede fallar con formatos inesperados (ej. `"AMRAP"`, strings vacíos, `null`) | **Alta** | Agregar `ELSE '[0]'` como fallback. Ejecutar `SELECT DISTINCT reps FROM "RoutineExercise"` antes de migrar para auditar todos los formatos existentes. Hacer backup de la tabla antes de migrar. |
-| R2 | **Cascade deletes rompen `deleteRoutine` existente**: Si el código actual intenta borrar RoutineExercise manualmente y luego Prisma intenta cascade, puede haber conflictos | **Media** | Actualizar `deleteRoutine` ANTES de aplicar la migración de cascade. O aplicar la migración y el código en el mismo deploy. |
-| R3 | **`RoutineCard` importa Feature (`RoutineEditor`)**: Viola la regla Smart/Dumb. Si no se corrige, el refactor del editor rompe la card | **Media** | Priorizar la limpieza de `RoutineCard` como primera tarea del frontend-coder. |
-| R4 | **Import duplicado en `RoutineExerciseItem.tsx`**: Línea 3 y línea 7 importan `RoutineExercise` del mismo path. Puede causar error de compilación | **Baja** | Corregir al refactorizar el archivo. |
-| R5 | **`userId` hardcodeado a 1**: Todas las actions asumen user 1. Si se agrega auth antes de terminar este módulo, hay conflicto | **Baja** | Mantener el hardcode con `// TODO: auth`. No bloquea el MVP. |
-| R6 | **`CreateRoutineDialog` recibe `onExercisesUpdate` que el padre no pasa**: La interfaz del componente no coincide con cómo se usa en `RoutineList` | **Baja** | Corregir al refactorizar. |
-| R7 | **Performance del editor con muchos ejercicios**: `structuredClone` en cada cambio de rep puede ser lento con rutinas grandes (7 días × muchos ejercicios) | **Baja** | Para el MVP es aceptable. Si se detecta lag, optimizar con `useReducer` o updates inmutables más granulares. |
+| #   | Riesgo                                                                                                                                                                      | Severidad | Mitigación                                                                                                                                                                                       |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| R1  | **Migración de datos de `reps`**: El SQL custom para convertir `"12-10-8"` a `"[12,10,8]"` puede fallar con formatos inesperados (ej. `"AMRAP"`, strings vacíos, `null`)    | **Alta**  | Agregar `ELSE '[0]'` como fallback. Ejecutar `SELECT DISTINCT reps FROM "RoutineExercise"` antes de migrar para auditar todos los formatos existentes. Hacer backup de la tabla antes de migrar. |
+| R2  | **Cascade deletes rompen `deleteRoutine` existente**: Si el código actual intenta borrar RoutineExercise manualmente y luego Prisma intenta cascade, puede haber conflictos | **Media** | Actualizar `deleteRoutine` ANTES de aplicar la migración de cascade. O aplicar la migración y el código en el mismo deploy.                                                                      |
+| R3  | **`RoutineCard` importa Feature (`RoutineEditor`)**: Viola la regla Smart/Dumb. Si no se corrige, el refactor del editor rompe la card                                      | **Media** | Priorizar la limpieza de `RoutineCard` como primera tarea del frontend-coder.                                                                                                                    |
+| R4  | **Import duplicado en `RoutineExerciseItem.tsx`**: Línea 3 y línea 7 importan `RoutineExercise` del mismo path. Puede causar error de compilación                           | **Baja**  | Corregir al refactorizar el archivo.                                                                                                                                                             |
+| R5  | **`userId` hardcodeado a 1**: Todas las actions asumen user 1. Si se agrega auth antes de terminar este módulo, hay conflicto                                               | **Baja**  | Mantener el hardcode con `// TODO: auth`. No bloquea el MVP.                                                                                                                                     |
+| R6  | **`CreateRoutineDialog` recibe `onExercisesUpdate` que el padre no pasa**: La interfaz del componente no coincide con cómo se usa en `RoutineList`                          | **Baja**  | Corregir al refactorizar.                                                                                                                                                                        |
+| R7  | **Performance del editor con muchos ejercicios**: `structuredClone` en cada cambio de rep puede ser lento con rutinas grandes (7 días × muchos ejercicios)                  | **Baja**  | Para el MVP es aceptable. Si se detecta lag, optimizar con `useReducer` o updates inmutables más granulares.                                                                                     |
 
 ### 8.2 Dependencias entre Tareas (orden de ejecución)
 
@@ -1302,6 +1360,7 @@ FASE 4: Verificación (tester)
 ```
 
 **Dependencias críticas:**
+
 - T6 (actions) BLOQUEA T13-T15 (features)
 - T5 (types) BLOQUEA T6-T12 (todo lo que usa tipos)
 - T1-T4 (migración) BLOQUEA T6 (actions necesitan el schema nuevo)
@@ -1309,14 +1368,14 @@ FASE 4: Verificación (tester)
 
 ### 8.3 Deuda Técnica Existente que Puede Interferir
 
-| Deuda | Impacto | Acción |
-|---|---|---|
-| **`RoutineCard` importa `RoutineEditor` (Feature)**: Viola Smart/Dumb. El componente Dumb tiene lógica de estado y llama a un Feature. | Alto — Bloquea el refactor limpio del editor | Corregir en T10 como prerequisito |
-| **`routine-detail.feature.tsx` vs `routine-details.tsx`**: Dos features para la misma vista. `routine-detail.feature.tsx` parece ser una versión anterior no usada. | Medio — Confusión sobre cuál es el canónico | Eliminar `routine-detail.feature.tsx` en T16. `routine-details.tsx` es el canónico |
-| **`JSON.parse(JSON.stringify(...))` para deep copy**: Usado en el editor actual. Lento y no type-safe. | Bajo — Funciona pero es subóptimo | Reemplazar con `structuredClone` en T13 |
-| **`any` casts en el editor**: `day as any`, `item: any` en varios handlers | Bajo — Funciona pero pierde type safety | Corregir con los nuevos tipos en T13 |
-| **`database` vs `prisma` inconsistencia**: Algunas actions usan `database` (wrapper con fallback mock) y `getAllExercises` usa `prisma` directamente | Bajo — Ambos funcionan | Estandarizar en `prisma` directamente en T6 |
-| **`RoutineDay` type duplicado**: Existe en `@core/types/index.ts` y en `routines.actions.ts` | Bajo — Puede causar confusión de imports | Consolidar en `@modules/routines/types/index.ts` en T5. Eliminar de `@core/types` |
+| Deuda                                                                                                                                                               | Impacto                                      | Acción                                                                             |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- | ---------------------------------------------------------------------------------- |
+| **`RoutineCard` importa `RoutineEditor` (Feature)**: Viola Smart/Dumb. El componente Dumb tiene lógica de estado y llama a un Feature.                              | Alto — Bloquea el refactor limpio del editor | Corregir en T10 como prerequisito                                                  |
+| **`routine-detail.feature.tsx` vs `routine-details.tsx`**: Dos features para la misma vista. `routine-detail.feature.tsx` parece ser una versión anterior no usada. | Medio — Confusión sobre cuál es el canónico  | Eliminar `routine-detail.feature.tsx` en T16. `routine-details.tsx` es el canónico |
+| **`JSON.parse(JSON.stringify(...))` para deep copy**: Usado en el editor actual. Lento y no type-safe.                                                              | Bajo — Funciona pero es subóptimo            | Reemplazar con `structuredClone` en T13                                            |
+| **`any` casts en el editor**: `day as any`, `item: any` en varios handlers                                                                                          | Bajo — Funciona pero pierde type safety      | Corregir con los nuevos tipos en T13                                               |
+| **`database` vs `prisma` inconsistencia**: Algunas actions usan `database` (wrapper con fallback mock) y `getAllExercises` usa `prisma` directamente                | Bajo — Ambos funcionan                       | Estandarizar en `prisma` directamente en T6                                        |
+| **`RoutineDay` type duplicado**: Existe en `@core/types/index.ts` y en `routines.actions.ts`                                                                        | Bajo — Puede causar confusión de imports     | Consolidar en `@modules/routines/types/index.ts` en T5. Eliminar de `@core/types`  |
 
 ---
 
@@ -1325,6 +1384,7 @@ FASE 4: Verificación (tester)
 ### A. Nueva tabla `RoutineSet` para reps por serie
 
 **Descartada.** Aunque es más normalizada y extensible, agrega complejidad innecesaria para el MVP:
+
 - JOIN adicional en cada query
 - Lógica de CRUD más compleja en actions
 - La migración de datos es más riesgosa (crear filas nuevas vs transformar un campo)
@@ -1349,33 +1409,39 @@ Si en el futuro se necesita, la migración de JSON array a tabla es straightforw
 ## 9. Mejoras de UX Implementadas
 
 ### 9.1 Indicador visual de campos requeridos
+
 - **Componente**: `ExerciseRow.tsx`
 - **Implementación**: Badge rojo con ícono `AlertCircle` cuando `exerciseId === null`
 - **Objetivo**: Indicar visualmente que el ejercicio es un campo requerido
 
 ### 9.2 Tooltips en controles de reordenamiento
+
 - **Componente**: `ExerciseRow.tsx`
 - **Implementación**: Tooltips de shadcn/ui en botones ↑↓ y eliminar
 - **Textos**: "Mover arriba", "Mover abajo", "Eliminar ejercicio"
 - **Objetivo**: Hacer más intuitivos los controles de acción
 
 ### 9.3 Feedback visual al mover ejercicios
+
 - **Componente**: `ExerciseRow.tsx`
 - **Implementación**: Cambio de background a `bg-primary/10` brevemente (300ms) al mover
 - **Objetivo**: Confirmar visualmente que la acción se realizó
 
 ### 9.4 Animación en filas de series
+
 - **Componente**: `ExerciseRow.tsx`
 - **Implementación**: Clases `animate-in fade-in slide-in-from-top-2` en cada fila de reps
 - **Objetivo**: Suavizar la aparición de nuevas filas al cambiar número de series
 
 ### 9.5 Creación inline de ejercicios
+
 - **Componente**: `ExercisePicker.tsx`
 - **Implementación**: Formulario inline dentro del `CommandDialog` con campos: nombre, grupo muscular, equipamiento
 - **Cambio arquitectónico**: Eliminado `CreateExerciseModal.tsx` separado
 - **Objetivo**: Flujo más fluido sin interrupciones por modales anidados
 
 ### 9.6 CommandDialog en lugar de Popover
+
 - **Componente**: `ExercisePicker.tsx`
 - **Implementación**: Uso de `CommandDialog` en lugar de `Popover`
 - **Motivo técnico**: Evitar conflicto de stacking context cuando el picker está dentro de un `Dialog` padre

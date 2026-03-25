@@ -15,13 +15,13 @@ Este RFC define la arquitectura técnica para implementar el **modo borrador** e
 
 ### Cambios Principales
 
-| Área | Cambio |
-|------|--------|
-| Persistencia local | `localStorage` con sincronización automática |
+| Área               | Cambio                                                                  |
+| ------------------ | ----------------------------------------------------------------------- |
+| Persistencia local | `localStorage` con sincronización automática                            |
 | Estado del cliente | Refactor de `WorkoutSessionProvider` para leer/escribir en localStorage |
-| Server Action | Nueva acción `commitWorkoutSession` con `prisma.$transaction` |
-| Tipos | Nuevos tipos `DraftSession` y `CommitSessionPayload` |
-| UI | Mejoras en `WorkoutExerciseItem` para edición de series completadas |
+| Server Action      | Nueva acción `commitWorkoutSession` con `prisma.$transaction`           |
+| Tipos              | Nuevos tipos `DraftSession` y `CommitSessionPayload`                    |
+| UI                 | Mejoras en `WorkoutExerciseItem` para edición de series completadas     |
 
 ---
 
@@ -56,12 +56,12 @@ WorkoutSessionProvider.tsx (useState) → workout-session.tsx (feature) → Work
 
 **Decisión: `localStorage`**
 
-| Opción | Pros | Contras | Veredicto |
-|--------|------|---------|-----------|
-| `localStorage` | Simple, síncrono, soporte universal, sin dependencias | Límite ~5MB, síncrono (bloquea main thread) | ✅ **Elegido** |
-| `IndexedDB` | Asíncrono, sin límite práctico, mejor para datos grandes | API compleja, requiere librería wrapper, overkill | ❌ Rechazado |
-| `react-query` + persist | Cache automático, sincronización | Dependencia adicional, complejidad innecesaria | ❌ Rechazado |
-| `zustand` + persist | Simple, integrado con estado global | Nueva dependencia, migración de contexto | ❌ Rechazado |
+| Opción                  | Pros                                                     | Contras                                           | Veredicto      |
+| ----------------------- | -------------------------------------------------------- | ------------------------------------------------- | -------------- |
+| `localStorage`          | Simple, síncrono, soporte universal, sin dependencias    | Límite ~5MB, síncrono (bloquea main thread)       | ✅ **Elegido** |
+| `IndexedDB`             | Asíncrono, sin límite práctico, mejor para datos grandes | API compleja, requiere librería wrapper, overkill | ❌ Rechazado   |
+| `react-query` + persist | Cache automático, sincronización                         | Dependencia adicional, complejidad innecesaria    | ❌ Rechazado   |
+| `zustand` + persist     | Simple, integrado con estado global                      | Nueva dependencia, migración de contexto          | ❌ Rechazado   |
 
 **Justificación:**
 
@@ -78,9 +78,9 @@ WorkoutSessionProvider.tsx (useState) → workout-session.tsx (feature) → Work
 // En WorkoutSessionProvider
 useEffect(() => {
   if (exercises.length > 0) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(draftSession));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(draftSession))
   }
-}, [exercises, timer.startDate, sessionNotes]);
+}, [exercises, timer.startDate, sessionNotes])
 ```
 
 **Alternativa considerada y rechazada:** Debounce con `useDebouncedEffect`. No es necesario porque las actualizaciones son discretas (clicks en steppers), no continuas (typing en input).
@@ -90,6 +90,7 @@ useEffect(() => {
 **Decisión: Agregar modelo `WorkoutExercise` al schema**
 
 El schema actual no tiene un modelo intermedio entre `WorkoutSession` y `SetEntry`. Esto impide:
+
 - Conocer el orden de ejercicios dentro de una sesión
 - Asociar series a un "ejercicio de la sesión" específico
 - Manejar ejercicios repetidos en la misma sesión
@@ -104,10 +105,10 @@ model WorkoutExercise {
   order      Int        // Posición en la sesión
   notes      String?
   sets       SetEntry[]
-  
+
   session    WorkoutSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   exercise   Exercise       @relation(fields: [exerciseId], references: [id])
-  
+
   @@index([sessionId])
   @@index([sessionId, order])
 }
@@ -125,9 +126,9 @@ model SetEntry {
   rpe              Int?
   notes            String?
   createdAt        DateTime        @default(now())
-  
+
   workoutExercise  WorkoutExercise @relation(fields: [workoutExerciseId], references: [id], onDelete: Cascade)
-  
+
   @@index([workoutExerciseId])
 }
 ```
@@ -143,41 +144,41 @@ model SetEntry {
 ```typescript
 // src/modules/log-workout/modules/session/types/draft-session.ts
 
-import { WorkoutExercise } from "@core/types";
+import { WorkoutExercise } from '@core/types'
 
 export interface DraftSession {
   // Metadata
-  id: string;                    // UUID generado al iniciar
-  version: number;               // Para migraciones futuras
-  createdAt: string;             // ISO timestamp
-  updatedAt: string;             // ISO timestamp
-  
+  id: string // UUID generado al iniciar
+  version: number // Para migraciones futuras
+  createdAt: string // ISO timestamp
+  updatedAt: string // ISO timestamp
+
   // Origen
   source: {
-    type: "routine" | "free";
-    routineId?: number;
-    routineDayId?: number;
-    routineDayName?: string;
-  };
-  
+    type: 'routine' | 'free'
+    routineId?: number
+    routineDayId?: number
+    routineDayName?: string
+  }
+
   // Estado del timer
   timer: {
-    startDate: string | null;    // ISO timestamp
-    elapsedTime: number;         // Segundos
-  };
-  
+    startDate: string | null // ISO timestamp
+    elapsedTime: number // Segundos
+  }
+
   // Datos de la sesión
-  exercises: WorkoutExercise[];
-  sessionNotes: string;
-  
+  exercises: WorkoutExercise[]
+  sessionNotes: string
+
   // Metadatos de UI
-  activeExerciseId: number | null;
-  lastCompletedSetId: string | null;
+  activeExerciseId: number | null
+  lastCompletedSetId: string | null
 }
 
 // Constantes
-export const DRAFT_SESSION_STORAGE_KEY = "gym-tracker:draft-session";
-export const DRAFT_SESSION_VERSION = 1;
+export const DRAFT_SESSION_STORAGE_KEY = 'gym-tracker:draft-session'
+export const DRAFT_SESSION_VERSION = 1
 ```
 
 ### 4.2 Tipo: `CommitSessionPayload` (Cliente → Server Action)
@@ -186,35 +187,35 @@ export const DRAFT_SESSION_VERSION = 1;
 // src/modules/log-workout/modules/session/types/commit-payload.ts
 
 export interface CommitSetEntryPayload {
-  exerciseId: number;
-  setNumber: number;
-  repsDone: number;
-  weightKg: number;
-  rpe?: number;
-  notes?: string;
+  exerciseId: number
+  setNumber: number
+  repsDone: number
+  weightKg: number
+  rpe?: number
+  notes?: string
 }
 
 export interface CommitWorkoutExercisePayload {
-  exerciseId: number;
-  order: number;
-  notes?: string;
-  sets: CommitSetEntryPayload[];
+  exerciseId: number
+  order: number
+  notes?: string
+  sets: CommitSetEntryPayload[]
 }
 
 export interface CommitSessionPayload {
   // Metadata de sesión
-  startedAt: Date;
-  finishedAt: Date;
-  durationSeconds: number;
-  
+  startedAt: Date
+  finishedAt: Date
+  durationSeconds: number
+
   // Origen
-  routineId?: number;
-  
+  routineId?: number
+
   // Notas
-  notes?: string;
-  
+  notes?: string
+
   // Ejercicios y series
-  exercises: CommitWorkoutExercisePayload[];
+  exercises: CommitWorkoutExercisePayload[]
 }
 ```
 
@@ -223,9 +224,13 @@ export interface CommitSessionPayload {
 ```typescript
 // src/modules/log-workout/modules/session/types/commit-result.ts
 
-export type CommitSessionResult = 
+export type CommitSessionResult =
   | { success: true; sessionId: number }
-  | { success: false; error: string; code: "TRANSACTION_FAILED" | "VALIDATION_ERROR" | "UNKNOWN" };
+  | {
+      success: false
+      error: string
+      code: 'TRANSACTION_FAILED' | 'VALIDATION_ERROR' | 'UNKNOWN'
+    }
 ```
 
 ---
@@ -243,11 +248,14 @@ src/modules/log-workout/actions/commit-workout-session.actions.ts
 ```typescript
 // src/modules/log-workout/actions/commit-workout-session.actions.ts
 
-"use server";
+'use server'
 
-import { prisma } from "@core/lib/prisma";
-import { revalidatePath } from "next/cache";
-import { CommitSessionPayload, CommitSessionResult } from "../modules/session/types/commit-payload";
+import { prisma } from '@core/lib/prisma'
+import { revalidatePath } from 'next/cache'
+import {
+  CommitSessionPayload,
+  CommitSessionResult,
+} from '../modules/session/types/commit-payload'
 
 export async function commitWorkoutSession(
   payload: CommitSessionPayload
@@ -262,7 +270,7 @@ export async function commitWorkoutSession(
           routineId: payload.routineId,
           notes: payload.notes,
         },
-      });
+      })
 
       // 2. Crear WorkoutExercises y SetEntries
       for (const exercise of payload.exercises) {
@@ -273,7 +281,7 @@ export async function commitWorkoutSession(
             order: exercise.order,
             notes: exercise.notes,
           },
-        });
+        })
 
         // 3. Crear SetEntries para este ejercicio
         if (exercise.sets.length > 0) {
@@ -287,38 +295,38 @@ export async function commitWorkoutSession(
               rpe: set.rpe,
               notes: set.notes,
             })),
-          });
+          })
         }
       }
 
-      return session;
-    });
+      return session
+    })
 
     // Revalidar rutas afectadas
-    revalidatePath("/log-workout");
-    revalidatePath("/statistics");
-    revalidatePath("/history");
+    revalidatePath('/log-workout')
+    revalidatePath('/statistics')
+    revalidatePath('/history')
 
-    return { success: true, sessionId: result.id };
+    return { success: true, sessionId: result.id }
   } catch (error) {
-    console.error("[commitWorkoutSession] Transaction failed:", error);
-    
+    console.error('[commitWorkoutSession] Transaction failed:', error)
+
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Unknown error",
-      code: "TRANSACTION_FAILED",
-    };
+      error: error instanceof Error ? error.message : 'Unknown error',
+      code: 'TRANSACTION_FAILED',
+    }
   }
 }
 ```
 
 ### 5.3 Manejo de Errores
 
-| Escenario | Acción |
-|-----------|--------|
+| Escenario         | Acción                                                           |
+| ----------------- | ---------------------------------------------------------------- |
 | Transacción falla | Retornar `{ success: false }`, mantener borrador en localStorage |
-| Validación falla | Retornar `{ success: false, code: "VALIDATION_ERROR" }` |
-| Error desconocido | Loguear, retornar error genérico, mantener borrador |
+| Validación falla  | Retornar `{ success: false, code: "VALIDATION_ERROR" }`          |
+| Error desconocido | Loguear, retornar error genérico, mantener borrador              |
 
 ---
 
@@ -336,30 +344,30 @@ sequenceDiagram
     participant DB as PostgreSQL
 
     Note over U,DB: INICIO DE SESIÓN
-    
+
     U->>WS: Selecciona rutina/día
     WS->>WSP: Props: routineDay
     WSP->>WSP: Inicializa exercises desde routineDay
     WSP->>LS: Guarda DraftSession inicial
     WSP->>WS: Renderiza UI
-    
+
     Note over U,DB: DURANTE LA SESIÓN (MODO BORRADOR)
-    
+
     U->>WS: Completa serie (click)
     WS->>WSP: updateSet(exerciseId, setId, { completed: true })
     WSP->>WSP: Actualiza state
     WSP->>LS: Guarda DraftSession actualizado
     WSP->>WS: Re-renderiza
-    
+
     Note: ... más interacciones ...
-    
+
     Note over U,DB: FINALIZACIÓN (COMMIT)
-    
+
     U->>WS: Click "Finalizar entrenamiento"
     WS->>WS: Construye CommitSessionPayload
     WS->>SA: commitWorkoutSession(payload)
     SA->>DB: prisma.$transaction()
-    
+
     alt Transacción exitosa
         DB-->>SA: Session creada
         SA-->>WS: { success: true, sessionId }
@@ -411,33 +419,37 @@ src/modules/log-workout/modules/session/
 ```typescript
 interface WorkoutSessionContextValue {
   // Estado
-  exercises: WorkoutExercise[];
-  availableExercises: Exercise[];
-  routineDay: RoutineDay | null;
-  timer: { startDate: Date | null; elapsedTime: number; isActive: boolean };
-  restTimer: UseRestTimerReturn;
-  sessionNotes: string;
-  
+  exercises: WorkoutExercise[]
+  availableExercises: Exercise[]
+  routineDay: RoutineDay | null
+  timer: { startDate: Date | null; elapsedTime: number; isActive: boolean }
+  restTimer: UseRestTimerReturn
+  sessionNotes: string
+
   // Estado del borrador
-  draftStatus: "idle" | "active" | "recovering" | "committing";
-  hasDraft: boolean;
-  
+  draftStatus: 'idle' | 'active' | 'recovering' | 'committing'
+  hasDraft: boolean
+
   // Acciones
   actions: {
-    startWorkout: () => void;
-    finishWorkout: (notes: string) => Promise<CommitSessionResult>;
-    cancelWorkout: () => void;
-    recoverDraft: () => void;
-    discardDraft: () => void;
-    addExercise: (exerciseId: number, targetSeries?: number) => void;
-    removeExercise: (exerciseId: number) => void;
-    moveExercise: (index: number, direction: "up" | "down") => void;
-    updateSet: (exerciseId: number, setId: string, updates: Partial<SetEntry>) => void;
-    addSet: (exerciseId: number) => void;
-    removeSet: (exerciseId: number, setId: string) => void;
-    undoLastChange: () => void;
-    setSessionNotes: (notes: string) => void;
-  };
+    startWorkout: () => void
+    finishWorkout: (notes: string) => Promise<CommitSessionResult>
+    cancelWorkout: () => void
+    recoverDraft: () => void
+    discardDraft: () => void
+    addExercise: (exerciseId: number, targetSeries?: number) => void
+    removeExercise: (exerciseId: number) => void
+    moveExercise: (index: number, direction: 'up' | 'down') => void
+    updateSet: (
+      exerciseId: number,
+      setId: string,
+      updates: Partial<SetEntry>
+    ) => void
+    addSet: (exerciseId: number) => void
+    removeSet: (exerciseId: number, setId: string) => void
+    undoLastChange: () => void
+    setSessionNotes: (notes: string) => void
+  }
 }
 ```
 
@@ -446,23 +458,23 @@ interface WorkoutSessionContextValue {
 ```typescript
 interface WorkoutExerciseItemProps {
   // Datos
-  exercise: WorkoutExercise;
-  exerciseIndex: number;
-  isLastItem: boolean;
-  
+  exercise: WorkoutExercise
+  exerciseIndex: number
+  isLastItem: boolean
+
   // Estado derivado
-  isActive: boolean;
-  completedSets: number;
-  totalSets: number;
-  previousWeight?: number;  // Peso de la última sesión
-  
+  isActive: boolean
+  completedSets: number
+  totalSets: number
+  previousWeight?: number // Peso de la última sesión
+
   // Callbacks
-  onUpdateSet: (setId: string, updates: Partial<SetEntry>) => void;
-  onAddSet: () => void;
-  onRemoveSet: (setId: string) => void;
-  onMoveUp: () => void;
-  onMoveDown: () => void;
-  onRemove: () => void;
+  onUpdateSet: (setId: string, updates: Partial<SetEntry>) => void
+  onAddSet: () => void
+  onRemoveSet: (setId: string) => void
+  onMoveUp: () => void
+  onMoveDown: () => void
+  onRemove: () => void
 }
 ```
 
@@ -475,56 +487,61 @@ interface WorkoutExerciseItemProps {
 **Cambios requeridos:**
 
 1. **Indicador de progreso prominente:**
+
    ```tsx
-   <div className="flex items-center gap-2 mb-4">
-     <Badge variant="default" className="text-lg px-4 py-2">
+   <div className='mb-4 flex items-center gap-2'>
+     <Badge variant='default' className='px-4 py-2 text-lg'>
        Serie {completedSets + 1} de {totalSets}
      </Badge>
    </div>
    ```
 
 2. **Peso de sesión anterior:**
+
    ```tsx
-   {previousWeight && (
-     <div className="text-sm text-muted-foreground mb-2">
-       Última sesión: {previousWeight}kg
-     </div>
-   )}
+   {
+     previousWeight && (
+       <div className='text-muted-foreground mb-2 text-sm'>
+         Última sesión: {previousWeight}kg
+       </div>
+     )
+   }
    ```
 
 3. **Edición de series completadas:**
    - Actualmente: el botón de completar togglea `completed`
    - Nuevo: series completadas permanecen editables, con indicador visual
+
    ```tsx
-   <div className={cn(
-     "p-4 space-y-4 rounded-lg transition-colors",
-     set.completed ? "bg-primary/10 border border-primary/20" : "bg-muted/30"
-   )}>
+   <div
+     className={cn(
+       'space-y-4 rounded-lg p-4 transition-colors',
+       set.completed ? 'bg-primary/10 border-primary/20 border' : 'bg-muted/30'
+     )}
+   >
      {set.completed && (
-       <Badge variant="secondary" className="mb-2">Completada</Badge>
+       <Badge variant='secondary' className='mb-2'>
+         Completada
+       </Badge>
      )}
      {/* Controles de edición siempre visibles */}
    </div>
    ```
 
 4. **Botón de deshacer:**
+
    ```tsx
-   <Button
-     variant="ghost"
-     size="sm"
-     onClick={onUndo}
-     disabled={!canUndo}
-   >
-     <Undo2 className="w-4 h-4 mr-1" />
+   <Button variant='ghost' size='sm' onClick={onUndo} disabled={!canUndo}>
+     <Undo2 className='mr-1 h-4 w-4' />
      Deshacer
    </Button>
    ```
 
 5. **Agregar/eliminar series:**
    ```tsx
-   <div className="flex gap-2 mt-4">
-     <Button variant="outline" size="sm" onClick={onAddSet}>
-       <Plus className="w-4 h-4 mr-1" />
+   <div className='mt-4 flex gap-2'>
+     <Button variant='outline' size='sm' onClick={onAddSet}>
+       <Plus className='mr-1 h-4 w-4' />
        Agregar serie
      </Button>
    </div>
@@ -536,9 +553,9 @@ Modal que aparece al iniciar la app si existe un borrador:
 
 ```tsx
 interface DraftRecoveryModalProps {
-  draft: DraftSession;
-  onRecover: () => void;
-  onDiscard: () => void;
+  draft: DraftSession
+  onRecover: () => void
+  onDiscard: () => void
 }
 
 // Muestra:
@@ -554,12 +571,14 @@ Badge en la navegación principal:
 
 ```tsx
 // En sidebar o header
-{hasActiveSession && (
-  <Badge variant="default" className="animate-pulse">
-    <Dumbbell className="w-3 h-3 mr-1" />
-    Sesión activa
-  </Badge>
-)}
+{
+  hasActiveSession && (
+    <Badge variant='default' className='animate-pulse'>
+      <Dumbbell className='mr-1 h-3 w-3' />
+      Sesión activa
+    </Badge>
+  )
+}
 ```
 
 ### 7.4 Vista Previa del Siguiente Ejercicio
@@ -567,18 +586,20 @@ Badge en la navegación principal:
 En `workout-session.tsx`, después del ejercicio activo:
 
 ```tsx
-{nextExercise && (
-  <Card className="border-dashed opacity-60">
-    <CardHeader className="py-3">
-      <CardTitle className="text-sm font-medium">
-        Siguiente: {nextExercise.name}
-      </CardTitle>
-      <p className="text-xs text-muted-foreground">
-        {nextExercise.targetSeries} series
-      </p>
-    </CardHeader>
-  </Card>
-)}
+{
+  nextExercise && (
+    <Card className='border-dashed opacity-60'>
+      <CardHeader className='py-3'>
+        <CardTitle className='text-sm font-medium'>
+          Siguiente: {nextExercise.name}
+        </CardTitle>
+        <p className='text-muted-foreground text-xs'>
+          {nextExercise.targetSeries} series
+        </p>
+      </CardHeader>
+    </Card>
+  )
+}
 ```
 
 ---
@@ -591,23 +612,25 @@ En `workout-session.tsx`, después del ejercicio activo:
 
 ```typescript
 // En WorkoutSessionProvider
-const [stateHistory, setStateHistory] = useState<WorkoutExercise[][]>([]);
-const [historyIndex, setHistoryIndex] = useState(-1);
+const [stateHistory, setStateHistory] = useState<WorkoutExercise[][]>([])
+const [historyIndex, setHistoryIndex] = useState(-1)
 
 const saveToHistory = (newExercises: WorkoutExercise[]) => {
   setStateHistory((prev) => {
-    const newHistory = [...prev.slice(historyIndex + 1), newExercises].slice(-10);
-    return newHistory;
-  });
-  setHistoryIndex((prev) => Math.min(prev + 1, 9));
-};
+    const newHistory = [...prev.slice(historyIndex + 1), newExercises].slice(
+      -10
+    )
+    return newHistory
+  })
+  setHistoryIndex((prev) => Math.min(prev + 1, 9))
+}
 
 const undoLastChange = () => {
   if (historyIndex > 0) {
-    setHistoryIndex((prev) => prev - 1);
-    setExercises(stateHistory[historyIndex - 1]);
+    setHistoryIndex((prev) => prev - 1)
+    setExercises(stateHistory[historyIndex - 1])
   }
-};
+}
 ```
 
 **Alternativa rechazada:** Undo por acción individual (complejo, propenso a inconsistencias).
@@ -631,25 +654,25 @@ npx prisma migrate dev --name add_workout_exercise_model
 
 ### 9.2 Migración de Código
 
-| Archivo | Cambio |
-|---------|--------|
-| `WorkoutSessionProvider.tsx` | Agregar persistencia localStorage, undo, nuevos actions |
-| `workout-session.tsx` | Manejar recuperación de borrador, construir payload de commit |
-| `WorkoutExerciseItem.tsx` | UI para edición de completadas, indicadores |
-| `workoutActions.ts` | Deprecar, reemplazar por `commit-workout-session.actions.ts` |
-| `src/core/types/index.ts` | Agregar tipos de draft y commit |
+| Archivo                      | Cambio                                                        |
+| ---------------------------- | ------------------------------------------------------------- |
+| `WorkoutSessionProvider.tsx` | Agregar persistencia localStorage, undo, nuevos actions       |
+| `workout-session.tsx`        | Manejar recuperación de borrador, construir payload de commit |
+| `WorkoutExerciseItem.tsx`    | UI para edición de completadas, indicadores                   |
+| `workoutActions.ts`          | Deprecar, reemplazar por `commit-workout-session.actions.ts`  |
+| `src/core/types/index.ts`    | Agregar tipos de draft y commit                               |
 
 ---
 
 ## 10. Riesgos y Mitigaciones
 
-| Riesgo | Probabilidad | Impacto | Mitigación |
-|--------|--------------|---------|------------|
-| localStorage lleno | Baja | Medio | Validar tamaño antes de guardar, limpiar sesiones antiguas |
-| Transacción muy grande | Media | Alto | Limitar series por sesión (máx 100), monitorear performance |
-| Borrador corrupto | Baja | Medio | Validar schema al recuperar, ofrecer descartar si falla |
-| Usuario cierra antes de commit | Alta | Crítico | Auto-guardado continuo en localStorage |
-| Migración de BD falla | Baja | Crítico | Backup antes de migrar, rollback plan |
+| Riesgo                         | Probabilidad | Impacto | Mitigación                                                  |
+| ------------------------------ | ------------ | ------- | ----------------------------------------------------------- |
+| localStorage lleno             | Baja         | Medio   | Validar tamaño antes de guardar, limpiar sesiones antiguas  |
+| Transacción muy grande         | Media        | Alto    | Limitar series por sesión (máx 100), monitorear performance |
+| Borrador corrupto              | Baja         | Medio   | Validar schema al recuperar, ofrecer descartar si falla     |
+| Usuario cierra antes de commit | Alta         | Crítico | Auto-guardado continuo en localStorage                      |
+| Migración de BD falla          | Baja         | Crítico | Backup antes de migrar, rollback plan                       |
 
 ---
 
@@ -705,6 +728,6 @@ npx prisma migrate dev --name add_workout_exercise_model
 
 ## Historial de Cambios
 
-| Versión | Fecha | Cambio |
-|---------|-------|--------|
-| 1.0 | 2026-03-17 | Versión inicial del RFC |
+| Versión | Fecha      | Cambio                  |
+| ------- | ---------- | ----------------------- |
+| 1.0     | 2026-03-17 | Versión inicial del RFC |

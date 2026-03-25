@@ -44,18 +44,20 @@ pnpm test:e2e:ui
 
 Puedes ejecutar un archivo de test específico o un test individual.
 
--   **Archivo específico:**
-    ```bash
-    pnpm test:e2e tests/e2e/log-workout.spec.ts
-    ```
--   **Test individual (usando `.only`):**
-    Edita el archivo de test y añade `.only` a la descripción del test que quieres ejecutar:
-    ```typescript
-    test.only('should persist draft workout session after reload', async ({ page }) => {
-      // ...
-    });
-    ```
-    Luego, ejecuta `pnpm test:e2e`.
+- **Archivo específico:**
+  ```bash
+  pnpm test:e2e tests/e2e/log-workout.spec.ts
+  ```
+- **Test individual (usando `.only`):**
+  Edita el archivo de test y añade `.only` a la descripción del test que quieres ejecutar:
+  ```typescript
+  test.only('should persist draft workout session after reload', async ({
+    page,
+  }) => {
+    // ...
+  })
+  ```
+  Luego, ejecuta `pnpm test:e2e`.
 
 ### Generar Reportes HTML
 
@@ -71,10 +73,10 @@ Este reporte se guarda en la carpeta `playwright-report/`.
 
 Los tests E2E siguen el patrón Page Object Model (POM) y se encuentran en la carpeta `tests/e2e/`.
 
--   **`tests/e2e/pages/`**: Contiene los Page Objects, que encapsulan las interacciones y selectores de una página o componente específico. Por ejemplo, `WorkoutSessionPage.ts` maneja las interacciones con la página de registro de entrenamiento.
--   **`tests/e2e/*.spec.ts`**: Contiene los archivos de tests que utilizan los Page Objects para definir los flujos de usuario.
+- **`tests/e2e/pages/`**: Contiene los Page Objects, que encapsulan las interacciones y selectores de una página o componente específico. Por ejemplo, `WorkoutSessionPage.ts` maneja las interacciones con la página de registro de entrenamiento.
+- **`tests/e2e/*.spec.ts`**: Contiene los archivos de tests que utilizan los Page Objects para definir los flujos de usuario.
 
 ## Consideraciones
 
--   **`data-test-id`**: Los selectores en los Page Objects (`tests/e2e/pages/WorkoutSessionPage.ts`) utilizan atributos `data-test-id` para mayor robustez. Es crucial que los componentes de la aplicación incluyan estos atributos para que los tests funcionen correctamente.
--   **Base URL**: Los tests asumen que la aplicación se ejecuta en `http://localhost:3000`. Si tu entorno de desarrollo usa un puerto diferente, ajusta `baseURL` en `playwright.config.ts`.
+- **`data-test-id`**: Los selectores en los Page Objects (`tests/e2e/pages/WorkoutSessionPage.ts`) utilizan atributos `data-test-id` para mayor robustez. Es crucial que los componentes de la aplicación incluyan estos atributos para que los tests funcionen correctamente.
+- **Base URL**: Los tests asumen que la aplicación se ejecuta en `http://localhost:3000`. Si tu entorno de desarrollo usa un puerto diferente, ajusta `baseURL` en `playwright.config.ts`.

@@ -1,14 +1,14 @@
-import { Activity } from "lucide-react";
-import React from "react";
+import { Activity } from 'lucide-react'
+import React from 'react'
 
 function Loader() {
   return (
-    <div className="flex flex-col items-center justify-center h-full gap-4">
+    <div className='flex h-full flex-col items-center justify-center gap-4'>
       {/* Animate lucide-react icon with tailwind */}
-      <Activity className="w-6 h-6 animate-pulse" />
-      <p className="text-sm">Cargando</p>
+      <Activity className='h-6 w-6 animate-pulse' />
+      <p className='text-sm'>Cargando</p>
     </div>
-  );
+  )
 }
 
-export default Loader;
+export default Loader

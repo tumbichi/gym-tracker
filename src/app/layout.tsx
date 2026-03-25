@@ -1,33 +1,42 @@
-import type React from "react";
-import type { Metadata } from "next";
-import { GeistSans } from "geist/font/sans";
-import { GeistMono } from "geist/font/mono";
-import { Analytics } from "@vercel/analytics/next";
-import "@core/styles/globals.css";
-import { ThemeProvider } from "@core/components/theme-provider";
-import { Suspense } from "react";
+import type React from 'react'
+import type { Metadata } from 'next'
+import { GeistSans } from 'geist/font/sans'
+import { GeistMono } from 'geist/font/mono'
+import { Analytics } from '@vercel/analytics/next'
+import '@core/styles/globals.css'
+import { ThemeProvider } from '@core/components/theme-provider'
+import { Suspense } from 'react'
 
-import { Toaster } from "@core/components/ui/sonner";
+import { Toaster } from '@core/components/ui/sonner'
 
 export const metadata: Metadata = {
-  title: "Gym Tracker",
-  description: "Track your workouts, routines, and progress",
-  generator: "v0.app",
-};
+  title: 'Gym Tracker',
+  description: 'Track your workouts, routines, and progress',
+  generator: 'v0.app',
+}
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html lang='en'>
       <head>
-        <script async crossOrigin="anonymous" src="https://tweakcn.com/live-preview.min.js" />
+        <script
+          async
+          crossOrigin='anonymous'
+          src='https://tweakcn.com/live-preview.min.js'
+        />
       </head>
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
         <Suspense fallback={null}>
-          <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <ThemeProvider
+            attribute='class'
+            defaultTheme='system'
+            enableSystem
+            disableTransitionOnChange
+          >
             {children}
             <Toaster />
           </ThemeProvider>
@@ -35,5 +44,5 @@ export default function RootLayout({
         <Analytics />
       </body>
     </html>
-  );
+  )
 }
