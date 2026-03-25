@@ -28,7 +28,6 @@ export default function AppLayout({
   const pathname = usePathname()
 
   const route = appRoutes.find((route) => {
-    console.log('route.pathname', route.label)
     return route.pathname === pathname
   })
 
