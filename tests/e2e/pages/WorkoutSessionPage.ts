@@ -193,7 +193,11 @@ export class WorkoutSessionPage {
   }
 
   async finalizeWorkout() {
-    const finishButton = this.page.getByRole('button', { name: 'Finalizar' })
+    // Buscar el botón por el icono Square (presente tanto en desktop como en mobile)
+    // El texto "Finalizar" está oculto en móvil (class "hidden sm:ml-2 sm:inline")
+    const finishButton = this.page
+      .locator('button')
+      .filter({ has: this.page.locator('svg.lucide-square') })
     await this.page.waitForLoadState('networkidle') // Ensure all network requests are done before waiting for button
     await finishButton.waitFor({ state: 'visible', timeout: 10000 }) // Wait for the button to be visible
     await finishButton.click()
