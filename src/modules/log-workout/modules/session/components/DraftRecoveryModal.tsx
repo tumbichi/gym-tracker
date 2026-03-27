@@ -1,4 +1,4 @@
-"use client";
+'use client'
 
 import {
   AlertDialog,
@@ -9,15 +9,15 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@core/components/ui/alert-dialog";
-import { DraftSession } from "../types/draft-session";
-import { formatDistanceToNow } from "date-fns";
-import { es } from "date-fns/locale";
+} from '@core/components/ui/alert-dialog'
+import { DraftSession } from '../types/draft-session'
+import { formatDistanceToNow } from 'date-fns'
+import { es } from 'date-fns/locale'
 
 interface DraftRecoveryModalProps {
-  draft: DraftSession | null;
-  onRecover: () => void;
-  onDiscard: () => void;
+  draft: DraftSession | null
+  onRecover: () => void
+  onDiscard: () => void
 }
 
 export function DraftRecoveryModal({
@@ -26,43 +26,47 @@ export function DraftRecoveryModal({
   onDiscard,
 }: DraftRecoveryModalProps) {
   if (!draft) {
-    return null;
+    return null
   }
 
-  const completedExercises = draft.exercises.filter(
-    (ex) => ex.sets.every((s) => s.completed)
-  ).length;
-  const totalExercises = draft.exercises.length;
+  const completedExercises = draft.exercises.filter((ex) =>
+    ex.sets.every((s) => s.completed)
+  ).length
+  const totalExercises = draft.exercises.length
 
   return (
     <AlertDialog open={!!draft}>
-      <AlertDialogContent data-test-id="draft-modal">
+      <AlertDialogContent data-test-id='draft-modal'>
         <AlertDialogHeader>
           <AlertDialogTitle>Borrador de sesión encontrado</AlertDialogTitle>
           <AlertDialogDescription>
-            Detectamos una sesión de entrenamiento sin finalizar que comenzaste{" "}
+            Detectamos una sesión de entrenamiento sin finalizar que comenzaste{' '}
             {formatDistanceToNow(new Date(draft.createdAt), {
               addSuffix: true,
               locale: es,
             })}
             .
-            <div className="mt-4 text-sm text-foreground">
+            <div className='text-foreground mt-4 text-sm'>
               <p>
-                <strong>Rutina:</strong>{" "}
-                {draft.source.routineDayName || "Entrenamiento libre"}
+                <strong>Rutina:</strong>{' '}
+                {draft.source.routineDayName || 'Entrenamiento libre'}
               </p>
               <p>
-                <strong>Progreso:</strong> {completedExercises} de {totalExercises}{" "}
-                ejercicios completados.
+                <strong>Progreso:</strong> {completedExercises} de{' '}
+                {totalExercises} ejercicios completados.
               </p>
             </div>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel type="button" onClick={onDiscard}>Descartar e iniciar nueva</AlertDialogCancel>
-          <AlertDialogAction onClick={onRecover}>Continuar borrador</AlertDialogAction>
+          <AlertDialogCancel type='button' onClick={onDiscard}>
+            Descartar e iniciar nueva
+          </AlertDialogCancel>
+          <AlertDialogAction onClick={onRecover}>
+            Continuar borrador
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
-  );
+  )
 }

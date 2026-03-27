@@ -1,31 +1,31 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react'
 
 const useTimer = () => {
-  const [isActive, setIsActive] = useState(false);
-  const [elapsedTime, setElapsedTime] = useState(0);
-  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [isActive, setIsActive] = useState(false)
+  const [elapsedTime, setElapsedTime] = useState(0)
+  const [startDate, setStartDate] = useState<Date | null>(null)
 
   // Timer effects
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: NodeJS.Timeout
     if (isActive && startDate) {
       interval = setInterval(() => {
-        setElapsedTime(Date.now() - startDate.getTime());
-      }, 1000);
+        setElapsedTime(Date.now() - startDate.getTime())
+      }, 1000)
     }
-    return () => clearInterval(interval);
-  }, [isActive, startDate]);
+    return () => clearInterval(interval)
+  }, [isActive, startDate])
 
   const start = (startTime: Date) => {
-    setIsActive(true);
-    setStartDate(startTime);
-  };
+    setIsActive(true)
+    setStartDate(startTime)
+  }
 
-  const reset = () => setElapsedTime(0);
+  const reset = () => setElapsedTime(0)
 
-  return { elapsedTime, isActive, startDate, reset, start };
-};
+  return { elapsedTime, isActive, startDate, reset, start }
+}
 
-export type UseTimerReturn = ReturnType<typeof useTimer>;
+export type UseTimerReturn = ReturnType<typeof useTimer>
 
-export default useTimer;
+export default useTimer

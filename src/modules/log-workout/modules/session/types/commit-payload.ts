@@ -1,31 +1,31 @@
 export interface CommitSetEntryPayload {
-  exerciseId: number;
-  setNumber: number;
-  repsDone: number;
-  weightKg: number;
-  rpe?: number;
-  notes?: string;
+  exerciseId: number
+  setNumber: number
+  repsDone: number
+  weightKg: number
+  rpe?: number
+  notes?: string
 }
 
 export interface CommitWorkoutExercisePayload {
-  exerciseId: number;
-  order: number;
-  notes?: string;
-  sets: CommitSetEntryPayload[];
+  exerciseId: number
+  order: number
+  notes?: string
+  sets: CommitSetEntryPayload[]
 }
 
 export interface CommitSessionPayload {
   // Metadata de sesión
-  startedAt: Date;
-  finishedAt: Date;
-  durationSeconds: number;
+  startedAt: Date
+  finishedAt: Date
+  durationSeconds: number
 
   // Origen
-  routineId?: number;
+  routineId?: number
 
   // Notas
-  notes?: string;
+  notes?: string
 
   // Ejercicios y series
-  exercises: CommitWorkoutExercisePayload[];
+  exercises: CommitWorkoutExercisePayload[]
 }

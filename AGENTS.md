@@ -36,6 +36,7 @@ pnpx prisma studio            # Navegador visual de la BD
 ### Testing
 
 No hay test runner configurado aun (ni vitest/jest/playwright en dependencias). Al agregar tests:
+
 - Tests unitarios/integracion: ubicar en `src/modules/[dominio]/__tests__/`
 - Tests E2E: ubicar en `tests/e2e/` (segun ARCHITECTURE.md)
 
@@ -166,13 +167,13 @@ La app esta en **espanol**. Todo texto visible al usuario (labels, toasts, descr
 
 ## Archivos Clave
 
-| Archivo | Proposito |
-|---|---|
-| `src/core/lib/prisma.ts` | Cliente Prisma singleton |
-| `src/core/lib/database.ts` | Capa BD hibrida (Prisma + fallback mock) |
-| `src/core/lib/utils.ts` | Utilidad `cn()` para merge de clases |
-| `src/core/types/index.ts` | Interfaces TypeScript compartidas |
-| `src/core/styles/globals.css` | Tailwind + variables CSS |
-| `components.json` | Config shadcn/ui (estilo New York, aliases `@core/`) |
-| `prisma/schema.prisma` | Schema de base de datos |
-| `docker/docker-compose.yml` | PostgreSQL local (puerto 5438) |
+| Archivo                       | Proposito                                            |
+| ----------------------------- | ---------------------------------------------------- |
+| `src/core/lib/prisma.ts`      | Cliente Prisma singleton                             |
+| `src/core/lib/database.ts`    | Capa BD hibrida (Prisma + fallback mock)             |
+| `src/core/lib/utils.ts`       | Utilidad `cn()` para merge de clases                 |
+| `src/core/types/index.ts`     | Interfaces TypeScript compartidas                    |
+| `src/core/styles/globals.css` | Tailwind + variables CSS                             |
+| `components.json`             | Config shadcn/ui (estilo New York, aliases `@core/`) |
+| `prisma/schema.prisma`        | Schema de base de datos                              |
+| `docker/docker-compose.yml`   | PostgreSQL local (puerto 5438)                       |

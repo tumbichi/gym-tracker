@@ -8,7 +8,7 @@ El objetivo principal es lograr una base de código **escalable, mantenible y de
 
 1. **Agnosticismo del Framework:** La lógica de negocio y las vistas principales no deben saber si estamos usando Next.js App Router o Pages Router. El enrutador solo sirve como punto de entrada.
 2. **Module Pattern:** El código se divide verticalmente por "Dominios" o "Módulos" (ej. `Auth`, `Budget`, `Portfolio`). Cada módulo es un micro-ecosistema independiente.
-3. **Feature Pattern (Smart/Dumb):** 
+3. **Feature Pattern (Smart/Dumb):**
    - **Features (Smart):** Componentes inteligentes que manejan estado, hacen fetching de datos, usan hooks complejos y orquestan la UI.
    - **Components (Dumb/Presentacionales):** Componentes tontos que solo reciben `props` y emiten eventos (`callbacks`). No tienen idea de dónde vienen los datos.
 
@@ -28,12 +28,16 @@ tests/
 ```
 
 ### 1. Capa de Enrutamiento (`src/app/`)
+
 Es la capa más externa. Pertenece exclusivamente a Next.js.
+
 - **Responsabilidad:** Definir rutas, layouts, metadatos (SEO) y manejar los endpoints del servidor (Rutas API).
 - **Regla de oro:** Aquí **NO** va lógica de negocio ni UI compleja. Las páginas (`page.tsx`) deben ser lo más finas posible, limitándose a recibir parámetros de la URL y renderizar un `Feature` del módulo correspondiente.
 
 ### 2. Capa Compartida (`src/core/`)
+
 Contiene todo el código que es **transversal a toda la aplicación** y agnóstico a cualquier dominio de negocio específico.
+
 - `components/`: Componentes UI genéricos (botones, inputs, modales). Usualmente manejados con librerías como shadcn/ui.
 - `hooks/`: Custom hooks globales (ej. `use-mobile`, `use-toast`).
 - `lib/` / `utils/`: Funciones utilitarias genéricas, formateadores de fecha, configuración de librerías.
@@ -41,6 +45,7 @@ Contiene todo el código que es **transversal a toda la aplicación** y agnósti
 - `data/` o `services/`: Clientes de bases de datos o servicios globales (ej. `supabaseClient`).
 
 ### 3. Capa de Dominio (`src/modules/`)
+
 Es el corazón de la aplicación. Aquí el código se agrupa por contexto de negocio (ej. `Budget`, `Auth`, `Reports`).
 
 Cada módulo tiene su propia estructura interna encapsulada:
@@ -58,7 +63,7 @@ src/modules/Budget/
 
 #### Anatomía de un Módulo:
 
-- **`features/` (Smart Components):** 
+- **`features/` (Smart Components):**
   Son los puntos de entrada para las páginas. Un feature (ej. `BudgetBoard.tsx`) se encarga de llamar a los hooks de fetching (`useBudgetData`), manejar estados de carga/error y pasar los datos limpios a los componentes hijos.
 - **`components/` (Dumb Components):**
   Componentes puramente visuales (ej. `ExpenseItem.tsx`, `CategoryBadge.tsx`). Reciben `data` e invocan funciones como `onDelete`, `onUpdate`. Son altamente testeables y predecibles.
@@ -74,7 +79,7 @@ src/modules/Budget/
 Para mantener la arquitectura limpia, existen reglas estrictas sobre qué puede importar a qué:
 
 1. **Regla de la Página:** Los archivos de `src/app` **solo** pueden importar desde `features/` (de los módulos) o layouts de `core/`.
-2. **Regla de los Módulos:** 
+2. **Regla de los Módulos:**
    - Un módulo no debería importar cosas de la carpeta interna de otro módulo. Si dos módulos necesitan compartir algo, ese algo probablemente pertenece a `src/core/`.
    - Si un módulo necesita utilizar un "Feature" de otro módulo, debe importarlo por su interfaz pública (el archivo Feature mismo), pero evitando el acoplamiento circular.
 3. **Regla del Feature:** Un `Feature` importa `components`, `hooks` y `services` de su propio módulo, y componentes base de `core/`.

@@ -1,10 +1,10 @@
-"use client";
+'use client'
 
 import {
   DraftSession,
   DRAFT_SESSION_STORAGE_KEY,
   DRAFT_SESSION_VERSION,
-} from "../types/draft-session";
+} from '../types/draft-session'
 
 /**
  * Loads the draft session from localStorage.
@@ -12,32 +12,32 @@ import {
  */
 export function loadDraftSession(): DraftSession | null {
   try {
-    const storedItem = localStorage.getItem(DRAFT_SESSION_STORAGE_KEY);
+    const storedItem = localStorage.getItem(DRAFT_SESSION_STORAGE_KEY)
     if (!storedItem) {
-      return null;
+      return null
     }
 
-    const draft = JSON.parse(storedItem) as DraftSession;
+    const draft = JSON.parse(storedItem) as DraftSession
 
     // Basic validation
     if (draft.version !== DRAFT_SESSION_VERSION) {
       console.warn(
         `Draft session version mismatch. Expected ${DRAFT_SESSION_VERSION}, found ${draft.version}. Discarding draft.`
-      );
-      clearDraftSession();
-      return null;
+      )
+      clearDraftSession()
+      return null
     }
 
     if (!draft.id || !Array.isArray(draft.exercises)) {
-      console.error("Invalid draft session format. Discarding draft.");
-      clearDraftSession();
-      return null;
+      console.error('Invalid draft session format. Discarding draft.')
+      clearDraftSession()
+      return null
     }
 
-    return draft;
+    return draft
   } catch (error) {
-    console.error("Failed to load draft session from localStorage:", error);
-    return null;
+    console.error('Failed to load draft session from localStorage:', error)
+    return null
   }
 }
 
@@ -47,10 +47,10 @@ export function loadDraftSession(): DraftSession | null {
  */
 export function saveDraftSession(draft: DraftSession): void {
   try {
-    const serialized = JSON.stringify(draft);
-    localStorage.setItem(DRAFT_SESSION_STORAGE_KEY, serialized);
+    const serialized = JSON.stringify(draft)
+    localStorage.setItem(DRAFT_SESSION_STORAGE_KEY, serialized)
   } catch (error) {
-    console.error("Failed to save draft session to localStorage:", error);
+    console.error('Failed to save draft session to localStorage:', error)
   }
 }
 
@@ -59,8 +59,8 @@ export function saveDraftSession(draft: DraftSession): void {
  */
 export function clearDraftSession(): void {
   try {
-    localStorage.removeItem(DRAFT_SESSION_STORAGE_KEY);
+    localStorage.removeItem(DRAFT_SESSION_STORAGE_KEY)
   } catch (error) {
-    console.error("Failed to clear draft session from localStorage:", error);
+    console.error('Failed to clear draft session from localStorage:', error)
   }
 }

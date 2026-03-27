@@ -1,7 +1,7 @@
-"use server"
+'use server'
 
-import { prisma } from "@core/lib/prisma"
-import { revalidatePath } from "next/cache"
+import { prisma } from '@core/lib/prisma'
+import { revalidatePath } from 'next/cache'
 
 export async function createRoutine(data: {
   name: string
@@ -47,11 +47,11 @@ export async function createRoutine(data: {
       },
     })
 
-    revalidatePath("/routines")
+    revalidatePath('/routines')
     return { success: true, routine }
   } catch (error) {
-    console.error("Error creating routine:", error)
-    return { success: false, error: "Failed to create routine" }
+    console.error('Error creating routine:', error)
+    return { success: false, error: 'Failed to create routine' }
   }
 }
 
@@ -72,7 +72,7 @@ export async function updateRoutine(
         notes: string
       }>
     }>
-  },
+  }
 ) {
   try {
     // Delete existing routine exercises and days, then recreate
@@ -114,12 +114,12 @@ export async function updateRoutine(
       },
     })
 
-    revalidatePath("/routines")
+    revalidatePath('/routines')
     revalidatePath(`/routines/${id}`)
     return { success: true }
   } catch (error) {
-    console.error("Error updating routine:", error)
-    return { success: false, error: "Failed to update routine" }
+    console.error('Error updating routine:', error)
+    return { success: false, error: 'Failed to update routine' }
   }
 }
 
@@ -129,10 +129,10 @@ export async function deleteRoutine(id: number) {
       where: { id },
     })
 
-    revalidatePath("/routines")
+    revalidatePath('/routines')
     return { success: true }
   } catch (error) {
-    console.error("Error deleting routine:", error)
-    return { success: false, error: "Failed to delete routine" }
+    console.error('Error deleting routine:', error)
+    return { success: false, error: 'Failed to delete routine' }
   }
 }

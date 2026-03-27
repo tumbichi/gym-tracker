@@ -1,13 +1,15 @@
-import { useContext } from "react";
-import WorkoutSessionContext from "..";
+import { useContext } from 'react'
+import WorkoutSessionContext from '..'
 
 function useWorkoutSessionContext() {
-  const context = useContext(WorkoutSessionContext);
+  const context = useContext(WorkoutSessionContext)
 
   if (context === undefined) {
-    throw new Error("useWorkoutSessionContext must be used within a WorkoutSessionProvider");
+    throw new Error(
+      'useWorkoutSessionContext must be used within a WorkoutSessionProvider'
+    )
   }
 
-  return context;
+  return context
 }
-export default useWorkoutSessionContext;
+export default useWorkoutSessionContext

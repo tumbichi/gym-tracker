@@ -3,11 +3,12 @@
 
 export default function TestSessionPage() {
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold">Test Session (Disabled)</h1>
-      <p className="text-muted-foreground">
-        This test page is currently disabled. Use the main session page at /log-workout/session instead.
+    <div className='p-8'>
+      <h1 className='text-2xl font-bold'>Test Session (Disabled)</h1>
+      <p className='text-muted-foreground'>
+        This test page is currently disabled. Use the main session page at
+        /log-workout/session instead.
       </p>
     </div>
-  );
+  )
 }
