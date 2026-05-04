@@ -113,8 +113,8 @@ async function getMuscleGroupAnalysis() {
     },
     include: {
       exercise: {
-        select: {
-          primaryGroup: true,
+        include: {
+          primaryMuscle: true,
         },
       },
     },
@@ -122,7 +122,7 @@ async function getMuscleGroupAnalysis() {
 
   const groupedData = muscleGroupData.reduce(
     (acc, entry) => {
-      const group = entry.exercise?.primaryGroup || 'Otros'
+      const group = entry.exercise?.primaryMuscle?.name || 'Otros'
       if (!acc[group]) {
         acc[group] = 0
       }
@@ -167,16 +167,12 @@ async function getRPETrends() {
     include: {
       exercise: {
         select: {
-          name: true,
+          canonicalName: true,
         },
       },
       workoutExercise: {
-        select: {
-          session: {
-            select: {
-              date: true,
-            },
-          },
+        include: {
+          session: true,
         },
       },
     },
@@ -192,7 +188,7 @@ async function getRPETrends() {
   const exerciseRPE = rpeData.reduce(
     (acc, entry) => {
       if (!entry.workoutExercise?.session?.date) return acc
-      const exerciseName = entry.exercise.name
+      const exerciseName = entry.exercise.canonicalName
       if (!acc[exerciseName]) {
         acc[exerciseName] = []
       }
@@ -458,7 +454,7 @@ export default async function StatisticsPage() {
               <SelectContent>
                 {exercises.slice(0, 5).map((exercise) => (
                   <SelectItem key={exercise.id} value={exercise.slug}>
-                    {exercise.name}
+                    {exercise.canonicalName}
                   </SelectItem>
                 ))}
               </SelectContent>

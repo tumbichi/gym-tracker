@@ -10,7 +10,7 @@ export async function createRoutine(data: {
     name: string
     order: number
     items: Array<{
-      exerciseId: number | null
+      exerciseId: string | null
       order: number
       series: number
       reps: string
@@ -64,7 +64,7 @@ export async function updateRoutine(
       name: string
       order: number
       items: Array<{
-        exerciseId: number | null
+        exerciseId: string | null
         order: number
         series: number
         reps: string

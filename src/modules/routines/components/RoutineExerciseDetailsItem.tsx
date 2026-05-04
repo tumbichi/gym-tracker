@@ -35,15 +35,10 @@ export default function RoutineExerciseDetailsItem({
       <div className='flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between'>
         <div className='flex items-center gap-2'>
           <Dumbbell className='text-primary h-5 w-5' />
-          <p className='text-lg font-semibold'>{item.exercise.name}</p>
+          <p className='text-lg font-semibold'>{item.exercise.canonicalName}</p>
         </div>
         <div className='flex flex-wrap items-center gap-2'>
-          {item.exercise.primaryGroup && (
-            <Badge variant='outline'>{item.exercise.primaryGroup}</Badge>
-          )}
-          {item.exercise.equipment && (
-            <Badge variant='outline'>{item.exercise.equipment}</Badge>
-          )}
+          <Badge variant='outline'>{item.exercise.exerciseType}</Badge>
         </div>
       </div>
 

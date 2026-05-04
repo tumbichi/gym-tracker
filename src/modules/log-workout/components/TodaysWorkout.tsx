@@ -53,7 +53,7 @@ export default function TodaysWorkout({ routines }: TodaysWorkoutProps) {
                         key={item.id}
                         className='flex items-center justify-between text-sm'
                       >
-                        <span>{item.exercise.name}</span>
+                        <span>{item.exercise.canonicalName}</span>
                         <span className='text-muted-foreground'>
                           {item.series} x {item.reps}
                         </span>

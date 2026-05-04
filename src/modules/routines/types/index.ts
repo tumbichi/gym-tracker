@@ -31,7 +31,7 @@ export type Routine = PrismaRoutine & {
 /** Una fila de ejercicio en el formulario del editor */
 export interface ExerciseFormItem {
   /** ID del ejercicio seleccionado, null si aún no se eligió */
-  exerciseId: number | null
+  exerciseId: string | null
   /** Posición dentro del día (1-based) */
   order: number
   /** Número de series (1-10). Debe coincidir con repsPerSet.length */
@@ -71,7 +71,7 @@ export interface CreateRoutinePayload {
     name: string
     order: number
     items: {
-      exerciseId: number
+      exerciseId: string
       order: number
       series: number
       /** JSON string: "[12,10,10,8]" */
@@ -165,7 +165,7 @@ export function routineToFormData(routine: Routine): RoutineFormData {
       name: day.name,
       order: day.order,
       items: day.items.map((item) => ({
-        exerciseId: item.exerciseId,
+        exerciseId: String(item.exerciseId),
         order: item.order,
         series: item.series,
         repsPerSet: parseReps(item.reps),
@@ -187,7 +187,7 @@ export function formDataToPayload(
       items: day.items
         .filter((item) => item.exerciseId !== null)
         .map((item) => ({
-          exerciseId: item.exerciseId as number,
+          exerciseId: item.exerciseId as string,
           order: item.order,
           series: item.repsPerSet.length,
           reps: serializeReps(item.repsPerSet),

@@ -25,7 +25,7 @@ export interface WorkoutSessionProviderProps extends PropsWithChildren {
   initialAvailableExercises?: Exercise[]
   isFreeWorkout?: boolean
   forceNew?: boolean
-  lastSessionDataByExercise?: Map<number, ExerciseLastSessionData>
+  lastSessionDataByExercise?: Map<string, ExerciseLastSessionData>
 }
 
 function WorkoutSessionProvider({
@@ -53,7 +53,7 @@ function WorkoutSessionProvider({
   // This is critical: we should only show recovery modal when recovering an EXISTING draft
   const [isRecoveredDraft, setIsRecoveredDraft] = useState(false)
   const [lastSessionDataByExercise, setLastSessionDataByExercise] =
-    useState<Map<number, ExerciseLastSessionData>>(lastSessionDataProp)
+    useState<Map<string, ExerciseLastSessionData>>(lastSessionDataProp)
 
   // Hooks
   const timer = useTimer()
@@ -145,7 +145,7 @@ function WorkoutSessionProvider({
       timer.start(new Date())
       setDraftStatus('active')
     },
-    [timer, routineDay]
+    [timer, routineDay, loadedDraft]
   )
 
   const cancelWorkout = useCallback(() => {
@@ -232,14 +232,14 @@ function WorkoutSessionProvider({
 
           return {
             id: item.exercise.id,
-            name: item.exercise.name,
+            name: item.exercise.canonicalName,
             targetSeries: item.series,
             targetReps: item.reps,
             notes: item.notes ?? undefined,
             sets: Array.from({ length: item.series }, (_, i) => ({
               id: `set-${item.exercise.id}-${i + 1}`,
               exerciseId: item.exercise.id,
-              exerciseName: item.exercise.name,
+              exerciseName: item.exercise.canonicalName,
               setNumber: i + 1,
               targetReps: item.reps,
               repsDone: defaultReps,
@@ -278,7 +278,7 @@ function WorkoutSessionProvider({
       timer.start(new Date())
       setDraftStatus('active')
     }
-  }, [clearDraft, routineDay, timer])
+  }, [clearDraft, routineDay, timer, lastSessionDataByExercise])
 
   const undoLastChange = useCallback(() => {
     setHistory((prevHistory) => {
@@ -358,7 +358,7 @@ function WorkoutSessionProvider({
   }
 
   const addExercise = (
-    exerciseId: number,
+    exerciseId: string,
     targetSeries = 3,
     lastSessionData?: { weightKg: number; repsDone: number } | null
   ) => {
@@ -372,13 +372,13 @@ function WorkoutSessionProvider({
 
     const newWorkoutExercise: WorkoutExercise = {
       id: exerciseToAdd.id,
-      name: exerciseToAdd.name,
+      name: exerciseToAdd.canonicalName,
       targetSeries: targetSeries,
       targetReps: '8-12',
       sets: Array.from({ length: targetSeries }, (_, i: number) => ({
         id: `set-${exerciseToAdd.id}-${i + 1}-${Date.now()}`,
         exerciseId: exerciseToAdd.id,
-        exerciseName: exerciseToAdd.name,
+        exerciseName: exerciseToAdd.canonicalName,
         setNumber: i + 1,
         repsDone: defaultReps,
         weightKg: defaultWeight,
@@ -389,7 +389,7 @@ function WorkoutSessionProvider({
     setExercisesWithHistory((prev) => [...prev, newWorkoutExercise])
   }
 
-  const removeExercise = (exerciseId: number) => {
+  const removeExercise = (exerciseId: string) => {
     setExercisesWithHistory((prev) => prev.filter((ex) => ex.id !== exerciseId))
   }
 
@@ -411,7 +411,7 @@ function WorkoutSessionProvider({
   }
 
   const updateSet = (
-    exerciseId: number,
+    exerciseId: string,
     setId: string,
     updates: Partial<SetEntry>
   ) => {
@@ -433,7 +433,7 @@ function WorkoutSessionProvider({
     }
   }
 
-  const addSet = (exerciseId: number) => {
+  const addSet = (exerciseId: string) => {
     setExercisesWithHistory((prev) =>
       prev.map((exercise) => {
         if (exercise.id !== exerciseId) return exercise
@@ -452,7 +452,7 @@ function WorkoutSessionProvider({
     )
   }
 
-  const removeSet = (exerciseId: number, setId: string) => {
+  const removeSet = (exerciseId: string, setId: string) => {
     setExercisesWithHistory((prev) =>
       prev.map((exercise) =>
         exercise.id === exerciseId
@@ -495,14 +495,14 @@ function WorkoutSessionProvider({
 
             return {
               id: item.exercise.id,
-              name: item.exercise.name,
+              name: item.exercise.canonicalName,
               targetSeries: item.series,
               targetReps: item.reps,
               notes: item.notes ?? undefined,
               sets: Array.from({ length: item.series }, (_, i) => ({
                 id: `set-${item.exercise.id}-${i + 1}`,
                 exerciseId: item.exercise.id,
-                exerciseName: item.exercise.name,
+                exerciseName: item.exercise.canonicalName,
                 setNumber: i + 1,
                 targetReps: item.reps,
                 repsDone: defaultReps,
@@ -520,7 +520,15 @@ function WorkoutSessionProvider({
         startWorkout([])
       }
     },
-    [routineDay, draftStatus, isFreeWorkoutProp, getDraft, loadedDraft]
+    [
+      routineDay,
+      draftStatus,
+      isFreeWorkoutProp,
+      getDraft,
+      loadedDraft,
+      lastSessionDataByExercise,
+      startWorkout,
+    ]
   )
 
   const contextValue = {

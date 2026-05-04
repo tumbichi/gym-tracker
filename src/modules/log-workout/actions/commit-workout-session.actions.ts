@@ -1,6 +1,6 @@
 'use server'
 
-import { prisma } from '@core/lib/prisma'
+import { database as prisma } from '@core/lib/database'
 import type { Prisma } from '@prisma/client'
 import { revalidatePath } from 'next/cache'
 import {
@@ -30,7 +30,7 @@ export async function commitWorkoutSession(
           const workoutExercise = await tx.workoutExercise.create({
             data: {
               sessionId: session.id,
-              exerciseId: exercise.exerciseId,
+              exerciseId: String(exercise.exerciseId),
               order: exercise.order,
               notes: exercise.notes,
             },
@@ -41,7 +41,7 @@ export async function commitWorkoutSession(
             await tx.setEntry.createMany({
               data: exercise.sets.map((set: CommitSetEntryPayload) => ({
                 workoutExerciseId: workoutExercise.id,
-                exerciseId: exercise.exerciseId, // Redundancia para queries
+                exerciseId: String(exercise.exerciseId), // Redundancia para queries
                 setNumber: set.setNumber,
                 repsDone: set.repsDone,
                 weightKg: set.weightKg,

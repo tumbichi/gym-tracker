@@ -1,6 +1,6 @@
 'use server'
 
-import { prisma } from '@core/lib/prisma'
+import { database as prisma } from '@core/lib/database'
 import {
   Exercise,
   Routine as PrismaRoutine,
@@ -16,7 +16,7 @@ export type RoutineDay = PrismaRoutineDay & { items: RoutineExercise[] }
 export type Routine = PrismaRoutine & { days: RoutineDay[] }
 export type WorkoutExerciseWithSets = {
   id: number
-  exerciseId: number
+  exerciseId: string
   order: number
   notes: string | null
   exercise: Exercise
@@ -31,6 +31,7 @@ export type RecentSession = PrismaWorkoutSession & {
 // Section: Data Fetching Functions
 export async function getRoutines(): Promise<Routine[]> {
   return (await prisma.routine.findMany({
+    where: { archivedAt: null },
     include: {
       days: {
         include: {
@@ -45,7 +46,7 @@ export async function getRoutines(): Promise<Routine[]> {
       },
     },
     orderBy: { name: 'asc' },
-  })) as Routine[]
+  })) as unknown as Routine[]
 }
 
 export async function getRecentSessions(): Promise<RecentSession[]> {
@@ -62,19 +63,19 @@ export async function getRecentSessions(): Promise<RecentSession[]> {
       },
     },
     orderBy: { date: 'desc' },
-  })) as RecentSession[]
+  })) as unknown as RecentSession[]
 }
 
 // Get the last session data for a specific exercise (for pre-filling weight/reps)
 export type ExerciseLastSessionData = {
-  exerciseId: number
+  exerciseId: string
   weightKg: number
   repsDone: number
   setNumber: number
 } | null
 
 export async function getLastSessionForExercise(
-  exerciseId: number
+  exerciseId: string
 ): Promise<ExerciseLastSessionData> {
   // Find the last SetEntry for this exercise (ordered by session date)
   // Then get the session date to order by

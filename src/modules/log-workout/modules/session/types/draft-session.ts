@@ -26,7 +26,7 @@ export interface DraftSession {
   sessionNotes: string
 
   // Metadatos de UI
-  activeExerciseId: number | null
+  activeExerciseId: string | null
   lastCompletedSetId: string | null
 }
 
