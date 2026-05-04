@@ -1,5 +1,5 @@
 export interface CommitSetEntryPayload {
-  exerciseId: number
+  exerciseId: string
   setNumber: number
   repsDone: number
   weightKg: number
@@ -8,7 +8,7 @@ export interface CommitSetEntryPayload {
 }
 
 export interface CommitWorkoutExercisePayload {
-  exerciseId: number
+  exerciseId: string
   order: number
   notes?: string
   sets: CommitSetEntryPayload[]

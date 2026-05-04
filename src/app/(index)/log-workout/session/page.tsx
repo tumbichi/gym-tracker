@@ -9,7 +9,6 @@ import {
   type ExerciseLastSessionData,
 } from '@modules/log-workout/actions/log-workout.actions'
 import { notFound } from 'next/navigation'
-import { PropsWithChildren } from 'react'
 
 interface WorkoutSessionPageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
@@ -41,24 +40,32 @@ export default async function WorkoutSessionPage({
     }
   }
 
-  const allExercises = await database.exercise.findMany({
-    orderBy: { name: 'asc' },
-  })
+  const allExercises = (await database.exercise.findMany({
+    orderBy: { canonicalName: 'asc' },
+  })) as any
 
   // Pre-fetch last session data for routine exercises
-  let lastSessionDataByExercise = new Map<number, ExerciseLastSessionData>()
+  let lastSessionDataByExercise = new Map<string, ExerciseLastSessionData>()
   if (routineDay?.items) {
-    const exerciseIds = routineDay.items.map((item) => item.exercise.id)
-    const promises = exerciseIds.map(async (exerciseId) => {
+    const exerciseIds = routineDay.items.map((item: any) => item.exercise.id)
+    const promises = exerciseIds.map(async (exerciseId: string) => {
       const data = await getLastSessionForExercise(exerciseId)
       return { exerciseId, data }
     })
     const results = await Promise.all(promises)
-    results.forEach(({ exerciseId, data }) => {
-      if (data) {
-        lastSessionDataByExercise.set(exerciseId, data)
+    results.forEach(
+      ({
+        exerciseId,
+        data,
+      }: {
+        exerciseId: string
+        data: ExerciseLastSessionData | null
+      }) => {
+        if (data) {
+          lastSessionDataByExercise.set(exerciseId, data)
+        }
       }
-    })
+    )
   }
 
   return (

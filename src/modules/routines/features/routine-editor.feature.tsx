@@ -142,7 +142,7 @@ export default function RoutineEditorFeature({
   const handleExerciseSelect = (
     dayIndex: number,
     itemIndex: number,
-    exerciseId: number
+    exerciseId: string
   ) => {
     setFormData((prev) => {
       const newDays = structuredClone(prev.days)
@@ -214,7 +214,7 @@ export default function RoutineEditorFeature({
       }
 
       const newExercise = await createExercise(payload)
-      toast.success(`Ejercicio "${newExercise.name}" creado.`)
+      toast.success(`Ejercicio "${newExercise.canonicalName}" creado.`)
 
       setFormData((prev) => {
         const newDays = structuredClone(prev.days)

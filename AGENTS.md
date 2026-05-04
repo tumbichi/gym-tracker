@@ -1,179 +1,84 @@
-# AGENTS.md — Guia del Codebase Gym Tracker
+# AGENTS.md — SDD Team Protocol & Architecture Standard
 
-> Fuente de verdad para agentes de IA operando en este repo. Leer completo antes de hacer cambios.
+> This file is the ONLY source of architectural truth. Agents MUST fail if asked to break these rules.
 
-## Referencia Rapida
+## 🛠️ PROJECT STANDARDS (Mandatory)
 
-- **Stack:** Next.js 14 (App Router), React 18, TypeScript 5, Tailwind CSS v4, Prisma (PostgreSQL), shadcn/ui (estilo New York)
-- **Package manager:** pnpm
-- **Target:** ES6, strict mode habilitado
+- **Package Manager:** `pnpm` is the ONLY package manager allowed. Do NOT use `npm`, `npx`, or **`yarn`**.
+- **Execution:** Use `pnpm run <script>`, `pnpm exec <command>`, or `pnpx <command>`.
 
-## Comandos de Build / Lint / Test
+### Primary Commands
 
-```bash
-pnpm dev              # Servidor de desarrollo (next dev)
-pnpm build            # Build de produccion (next build)
-pnpm build:vercel     # Deploy Vercel: prisma migrate deploy && next build
-pnpm lint             # ESLint via next lint
-pnpm check-types      # Chequeo de tipos TypeScript (tsc --noEmit)
-pnpm postinstall      # Ejecuta prisma generate (automatico tras pnpm install)
-```
+- **`pnpm dev`**: Starts the Next.js development server.
+- **`pnpm build`**: Creates a production build.
+- **`pnpm lint`**: Runs ESLint to find style and quality issues.
+- **`pnpm format`**: Formats all code using Prettier. Run this before committing.
+- **`pnpm check-types`**: Runs the TypeScript compiler to validate types without generating code.
+- **`pnpm test:e2e`**: Runs the end-to-end tests using Playwright.
 
-### Base de Datos
+## 🏗️ CORE ARCHITECTURE (Module & Feature Pattern)
 
-```bash
-# Postgres local via Docker (puerto 5438)
-docker compose -f docker/docker-compose.yml up -d
+Based on `ARCHITECTURE.md`, the project is divided into 3 layers with unidirectional flow:
 
-# Comandos Prisma
-pnpx prisma generate          # Generar cliente tras cambios al schema
-pnpx prisma migrate dev       # Crear y aplicar migracion
-pnpx prisma migrate deploy    # Aplicar migraciones pendientes (produccion)
-pnpx prisma db seed           # Ejecutar seed (prisma/seed.ts)
-pnpx prisma studio            # Navegador visual de la BD
-```
+### 1. Routing Layer (`src/app/`)
 
-### Testing
+- **Responsibility:** Routes, Next.js Layouts, and Metadata.
+- **GOLDEN RULE:** "Thin" pages. They only receive params and render a **Feature** from a module. Complex logic or UI is strictly forbidden here.
+- **Imports:** Only from `src/modules/[domain]/features` or `src/core/layout`.
 
-No hay test runner configurado aun (ni vitest/jest/playwright en dependencias). Al agregar tests:
+### 2. Global Layer (`src/core/`)
 
-- Tests unitarios/integracion: ubicar en `src/modules/[dominio]/__tests__/`
-- Tests E2E: ubicar en `tests/e2e/` (segun ARCHITECTURE.md)
+- **`components/`**: Generic UI (Design System / shadcn).
+- **`layout/`**: Structural components (Navbar, Sidebar, Footer).
+- **`hooks/`, `lib/`, `utils/`**: Business-agnostic logic.
+- **`services/`**: Global clients (e.g., `supabaseClient`).
 
-## Arquitectura del Proyecto (Module + Feature Pattern)
+### 3. Domain Layer (`src/modules/[Domain]/`)
 
-```
-src/
-  app/            # Capa de enrutamiento — paginas thin, layouts, metadata
-  core/           # Compartido: componentes UI, hooks, lib, types, styles
-  modules/        # Capa de dominio — logica de negocio agrupada por dominio
-    exercises/    # Dominio de catalogo de ejercicios
-    routines/     # Dominio de gestion de rutinas
-    log-workout/  # Dominio de sesion de entrenamiento (tiene sub-modulos)
-```
+Each module is an encapsulated micro-ecosystem:
 
-### Tres Capas (flujo unidireccional estricto)
+- **`features/` (Smart):** Orchestrators. They handle state, fetching (hooks), and services. Entry points for `app/`.
+- **`components/` (Dumb):** Domain-specific UI. They only receive props and emit callbacks. **FORBIDDEN** to import hooks or services here.
+- **`hooks/` & `services/`:** Domain-specific logic and asynchronous communication.
+- **`types/` & `utils/`:** Local definitions and helpers.
 
-1. **`src/app/`** — Solo definiciones de rutas. Las paginas llaman server actions para datos y renderizan un unico Feature. Sin logica de negocio.
-2. **`src/core/`** — Codigo compartido agnostico al framework: primitivos UI (`components/ui/`), hooks globales, utils, cliente Prisma, tipos.
-3. **`src/modules/[dominio]/`** — Modulos de dominio auto-contenidos:
-   - `features/` (Smart) — Orquestadores: estado, fetching, hooks. Puntos de entrada para paginas.
-   - `components/` (Dumb) — Puramente presentacionales. Props de entrada, callbacks de salida. **PROHIBIDO importar hooks/services.**
-   - `actions/` — Server Actions (`"use server"`). Fetching y mutaciones con Prisma.
-   - `hooks/` — Hooks de React especificos del dominio.
-   - `contexts/` — Providers de React context (ver `log-workout/modules/session/contexts/`).
-   - `types/`, `utils/` — Definiciones de tipos y helpers locales.
+## 🚀 SDD Workflow (8 Specialists)
 
-### Reglas de Dependencia
+1.  **orchestrator (Tech Lead):** Plans and delegates. NEVER codes. **MANDATE:** Challenge the user's assumptions; do not just agree.
+2.  **product-manager (Discovery):** Conducts discovery with the user and drafts the PRD in `docs/product/features/`.
+3.  **explorer (Codebase Mapper):** Maps the current codebase, identifies patterns, and reports dependencies to the Architect.
+4.  **architect (SDD Expert):** Designs the RFC based on the PRD and Exploration report. Defines Modules, Core utilities, and Data contracts.
+5.  **planner (Task Generator):** Breaks down the RFC into atomic, executable tasks for the Coders.
+6.  **frontend-coder (Smart/Dumb UI):** Implements the UI. Strictly separates Smart (features) from Dumb (components). **Includes Unit/Integration tests.**
+7.  **backend-coder (Logic & DB):** Implements Server Actions and Services. Forbidden to touch visual `.tsx`. **Includes Unit/Integration tests.**
+8.  **auditor (Integrity Gate):** Cross-audits PRD vs RFC vs Code. Verifies DDD and Smart/Dumb compliance.
+9.  **tester-e2e (Critical Flows):** Develops full E2E flows (Playwright) in `tests/e2e/`.
+10. **debugger:** Investigates root cause of bugs using logs and Chrome DevTools.
+11. **seo-docs:** Audits SEO in `src/app` and documents public interfaces.
 
-- Paginas en `src/app/` importan SOLO de `modules/*/features`, `modules/*/actions` o `core/`.
-- Los modulos NO importan internos de otros modulos. Compartir via `core/`.
-- Componentes Dumb (`components/`) NUNCA importan hooks, services ni actions.
-- Features (`features/`) importan de su propio modulo (components, hooks, actions) y de `core/`.
+## 🔄 Dependency Rules
 
-## Alias de Rutas (tsconfig.json)
+- A module does not import internal folders from another module (use `src/core` if shared).
+- Dumb components DO NOT import logic/hooks/services.
+- Pages in `src/app` are simple shells for `features`.
 
-```
-@app/*      → ./src/app/*
-@core/*     → ./src/core/*
-@modules/*  → ./src/modules/*
-```
+## 📝 Code Style & Conventions
 
-Usar siempre estos alias. Nunca usar rutas relativas que crucen capas (ej. `../../../core`).
+- **Formatting:** Code is formatted with `Prettier` using the project's configuration. Always run `pnpm format` before committing changes.
+- **Linting:** `ESLint` is used for code quality. Rules are defined in `.eslintrc.js` and are based on `next/core-web-vitals`. Run `pnpm lint` to check for issues.
+- **Typing:** The project is 100% TypeScript. `any` is forbidden. Use specific types, infer from Zod schemas, or use `unknown` for safe type casting.
+- **Naming:**
+  - Components: `PascalCase` (e.g., `WorkoutCard.tsx`).
+  - Hooks: `use` prefix (e.g., `useAuth.ts`).
+  - Services/Utilities: `camelCase` (e.g., `userService.ts`).
+- **Error Handling:** Services and data-fetching functions should handle potential errors gracefully, returning a consistent `{ data, error }` object structure where possible.
 
-## Estilo de Codigo y Convenciones
+## 🧪 Testing Strategy
 
-### Nombres de Archivos
+- **Unit/Integration Tests:** Each module should contain a `__tests__` directory for its specific tests. The command `pnpm test` should be configured to run these (NOTE: currently not defined in `package.json`).
+- **End-to-End (E2E) Tests:** Critical user flows are tested with Playwright. These tests reside in `tests/e2e/` and are executed with `pnpm test:e2e`.
 
-- **Features:** `kebab-case.feature.tsx` (ej. `routine-editor.feature.tsx`)
-- **Componentes:** `PascalCase.tsx` (ej. `RoutineCard.tsx`, `WorkoutExerciseItem.tsx`)
-- **Hooks:** `camelCase.ts` con prefijo `use` (ej. `useRestTimer.ts`)
-- **Actions:** `kebab-case.actions.ts` (ej. `routines.actions.ts`)
-- **Contexts:** Patron directorio: `contexts/[Nombre]/index.ts` + `Provider.tsx` + `hooks/`
-- **Utils/lib:** `camelCase.ts` (ej. `formatTime.ts`)
+## 🛑 UNIVERSAL RULE: Engram Tollbooth
 
-### TypeScript
-
-- Modo strict activado. Respetarlo.
-- Usar `interface` para props de componentes y formas de objetos. Usar `type` para uniones, intersecciones y tipos derivados de Prisma.
-- Interfaces de props: `NombreComponenteProps` (ej. `RoutineEditorProps`, `RoutineCardProps`).
-- Extender tipos Prisma con `&` para relaciones: `type Routine = PrismaRoutine & { days: RoutineDay[] }`.
-- Exportar tipos de dominio desde archivos de actions (co-ubicados con la capa de datos).
-- Tipos compartidos viven en `src/core/types/index.ts`.
-- Evitar `any` — usarlo solo como ultimo recurso con un comentario explicando por que.
-
-### Orden de Imports
-
-1. Directiva `"use client"` o `"use server"` (primera linea, si es necesario)
-2. Imports de React / Next.js (`import type React from "react"`, `import { useState }`)
-3. Librerias de terceros (`lucide-react`, `sonner`, `zod`, `date-fns`)
-4. Imports de `@core/` (componentes UI, lib, hooks, types)
-5. Imports de `@modules/` (actions, tipos del mismo u otros modulos)
-6. Imports relativos (components, hooks del mismo modulo)
-
-Usar `import type` para imports que solo son de tipos.
-
-### Componentes
-
-- Componentes cliente: agregar `"use client"` como primera linea del archivo.
-- Componentes servidor: por defecto (sin directiva). Las paginas en `app/` son server components.
-- Componentes presentacionales (Dumb) reciben datos via props y emiten eventos via callbacks (`onDelete`, `onChange`, etc.).
-- Features (Smart) manejan estado, llaman hooks/actions y componen componentes Dumb.
-- Usar `export default function` para componentes (no arrow functions).
-
-### Estilos
-
-- Tailwind CSS v4 con plugin `@tailwindcss/postcss`.
-- Usar la utilidad `cn()` de `@core/lib/utils` para clases condicionales.
-- Variables CSS definidas en `src/core/styles/globals.css` (espacio de color oklch).
-- Componentes shadcn/ui en `src/core/components/ui/` — **no modificar** archivos generados.
-- Iconos: `lucide-react` exclusivamente.
-
-### Manejo de Errores
-
-- Server Actions: usar try/catch, dejar que los errores propaguen al cliente.
-- Client-side: usar try/catch en handlers async. Mostrar errores via `toast.error()` de `sonner`.
-- Loguear errores con `console.error()` antes de mostrar feedback al usuario.
-
-### Capa de Datos
-
-- `@core/lib/prisma.ts` — Cliente Prisma singleton (cache global en dev).
-- `@core/lib/database.ts` — Abstraccion hibrida: intenta Prisma, cae a datos mock (`db.ts`).
-- Server Actions (en `modules/*/actions/`) usan `database` o `prisma` directamente.
-- Siempre llamar `revalidatePath()` despues de mutaciones para mantener la UI fresca.
-
-### Base de Datos (Prisma)
-
-- Schema: `prisma/schema.prisma` (PostgreSQL, IDs autoincrement).
-- Modelos: `User`, `Exercise`, `Routine`, `RoutineDay`, `RoutineExercise`, `WorkoutSession`, `SetEntry`.
-- Seeds: `prisma/seed.ts`. Backups locales SQLite existen en `prisma/*.bak.db`.
-- Variable de entorno: `DATABASE_URL` (ver `docker/docker-compose.yml` para defaults locales: puerto 5438).
-
-### Idioma de la UI
-
-La app esta en **espanol**. Todo texto visible al usuario (labels, toasts, descripciones) debe estar en espanol.
-
-## Flujo de Trabajo SDD (9 Especialistas)
-
-1. **orchestrator** — Planifica y delega. Nunca programa.
-2. **product-manager** — Discovery y PRDs en `docs/product/features/`.
-3. **architect** — RFCs, limites de modulos, contratos de datos.
-4. **tester-unit** — Tests unitarios e integracion.
-5. **frontend-coder** — Implementacion UI (separacion Smart/Dumb).
-6. **backend-coder** — Server Actions y services. No toca archivos `.tsx` visuales.
-7. **tester-e2e** — Tests E2E con Playwright en `tests/e2e/`.
-8. **debugger** — Analisis de causa raiz via logs y DevTools.
-9. **seo-docs** — Auditoria SEO y documentacion.
-
-## Archivos Clave
-
-| Archivo                       | Proposito                                            |
-| ----------------------------- | ---------------------------------------------------- |
-| `src/core/lib/prisma.ts`      | Cliente Prisma singleton                             |
-| `src/core/lib/database.ts`    | Capa BD hibrida (Prisma + fallback mock)             |
-| `src/core/lib/utils.ts`       | Utilidad `cn()` para merge de clases                 |
-| `src/core/types/index.ts`     | Interfaces TypeScript compartidas                    |
-| `src/core/styles/globals.css` | Tailwind + variables CSS                             |
-| `components.json`             | Config shadcn/ui (estilo New York, aliases `@core/`) |
-| `prisma/schema.prisma`        | Schema de base de datos                              |
-| `docker/docker-compose.yml`   | PostgreSQL local (puerto 5438)                       |
+**Every execution MUST begin by reading the session context in Engram (`mem_search` / `mem_get_observation`).**
+Upon finishing your work, you are STRICTLY FORBIDDEN from returning control without first executing `mem_save` with a 2-line summary of decisions made or delegated files. Engram is a mandatory toll.
