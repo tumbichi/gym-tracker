@@ -6,7 +6,7 @@ import {
 
 export interface SetEntry {
   id: string
-  exerciseId: number
+  exerciseId: string
   exerciseName: string
   setNumber: number
   targetReps?: string
@@ -19,7 +19,7 @@ export interface SetEntry {
 }
 
 export interface WorkoutExercise {
-  id: number
+  id: string
   name: string
   targetSeries: number
   targetReps: string

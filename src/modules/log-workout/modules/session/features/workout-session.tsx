@@ -49,7 +49,7 @@ export function WorkoutSession() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [lastSessionDataByExercise, setLastSessionDataByExercise] = useState<
-    Map<number, LastSessionData>
+    Map<string, LastSessionData>
   >(new Map())
 
   // Unified loading state - true until we know the final state
@@ -129,7 +129,7 @@ export function WorkoutSession() {
     if (availableExercises.length === 0) return
 
     const fetchLastSessionData = async () => {
-      const newMap = new Map<number, LastSessionData>()
+      const newMap = new Map<string, LastSessionData>()
 
       // Fetch in parallel for all exercises
       const promises = availableExercises.map(async (exercise) => {

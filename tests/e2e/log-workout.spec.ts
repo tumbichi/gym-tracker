@@ -4,7 +4,7 @@ import { PrismaClient } from '@prisma/client'
 import { DRAFT_SESSION_VERSION } from '../../src/modules/log-workout/modules/session/types/draft-session'
 
 let prisma: PrismaClient
-let exercises: { id: number; name: string }[] = []
+let exercises: { id: string; canonicalName: string }[] = []
 
 test.beforeAll(async () => {
   prisma = new PrismaClient({
@@ -19,7 +19,7 @@ test.beforeAll(async () => {
   exercises = await prisma.exercise.findMany({
     select: {
       id: true,
-      name: true,
+      canonicalName: true,
     },
     take: 5,
   })
@@ -56,14 +56,14 @@ test.describe('Log Workout Session E2E Tests', () => {
       exercises: [
         {
           id: exercises[0].id,
-          name: exercises[0].name,
+          name: exercises[0].canonicalName,
           targetSeries: 3, // Example value
           targetReps: '8-12', // Example value
           sets: [
             {
               id: 'set-1',
               exerciseId: exercises[0].id,
-              exerciseName: exercises[0].name,
+              exerciseName: exercises[0].canonicalName,
               setNumber: 1,
               repsDone: 10,
               weightKg: 50,
@@ -104,7 +104,7 @@ test.describe('Log Workout Session E2E Tests', () => {
     await workoutSessionPage.waitForLoadingScreenToDisappear() // Wait for loading to finish
     await workoutSessionPage.expectModalNotVisible()
     // Use normalized exercise name for the test (without accents and with dashes for spaces)
-    const normalizedExerciseName = dummyDraftData.exercises[0].name
+    const normalizedExerciseName = dummyDraftData.exercises[0].canonicalName
       .toLowerCase()
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '')
@@ -135,7 +135,7 @@ test.describe('Log Workout Session E2E Tests', () => {
     await workoutSessionPage.continueDraft() // Clicks continue, expects modal to disappear
     await workoutSessionPage.waitForLoadingScreenToDisappear() // Wait for loading to finish after continuing draft
     await workoutSessionPage.expectExerciseAndSetData(
-      dummyDraftData.exercises[0].name,
+      dummyDraftData.exercises[0].canonicalName,
       1,
       dummyDraftData.exercises[0].sets[0].repsDone.toString(),
       dummyDraftData.exercises[0].sets[0].weightKg.toString()
@@ -169,7 +169,7 @@ test.describe('Log Workout Session E2E Tests', () => {
     await workoutSessionPage.waitForLoadingScreenToDisappear() // Wait for loading to finish
     await workoutSessionPage.startWorkout() // Starts a new clean session
     await workoutSessionPage.waitForLoadingScreenToDisappear() // Wait for loading to finish after starting workout
-    const exerciseName = exercises[0].name
+    const exerciseName = exercises[0].canonicalName
     await workoutSessionPage.addExercise(exerciseName)
     await workoutSessionPage.completeSet(exerciseName, 1, '10', '50')
 
@@ -214,7 +214,7 @@ test.describe('Log Workout Session E2E Tests', () => {
     await workoutSessionPage.waitForLoadingScreenToDisappear() // Wait for loading to finish
     await workoutSessionPage.startWorkout()
     await workoutSessionPage.waitForLoadingScreenToDisappear() // Wait for loading to finish after starting workout
-    const exerciseName = exercises[0].name
+    const exerciseName = exercises[0].canonicalName
     await workoutSessionPage.addExercise(exerciseName)
     await expect(workoutSessionPage.page.getByText(exerciseName)).toBeVisible()
   })
@@ -224,7 +224,7 @@ test.describe('Log Workout Session E2E Tests', () => {
     await workoutSessionPage.waitForLoadingScreenToDisappear() // Wait for loading to finish
     await workoutSessionPage.startWorkout()
     await workoutSessionPage.waitForLoadingScreenToDisappear() // Wait for loading to finish after starting workout
-    const exerciseName = exercises[0].name
+    const exerciseName = exercises[0].canonicalName
     await workoutSessionPage.addExercise(exerciseName)
 
     await workoutSessionPage.completeSet(exerciseName, 1, '10', '50')
@@ -248,7 +248,7 @@ test.describe('Log Workout Session E2E Tests', () => {
     await workoutSessionPage.waitForLoadingScreenToDisappear() // Wait for loading to finish
     await workoutSessionPage.startWorkout()
     await workoutSessionPage.waitForLoadingScreenToDisappear() // Wait for loading to finish after starting workout
-    const exerciseName = exercises[0].name
+    const exerciseName = exercises[0].canonicalName
     await workoutSessionPage.addExercise(exerciseName)
     await workoutSessionPage.completeSet(exerciseName, 1, '10', '50')
     await workoutSessionPage.completeSet(exerciseName, 2, '10', '50')

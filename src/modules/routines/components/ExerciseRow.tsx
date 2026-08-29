@@ -12,7 +12,7 @@ import {
 import { Button } from '@core/components/ui/button'
 import { Input } from '@core/components/ui/input'
 import { NumberInputStepper } from '@core/components/ui/number-input-stepper'
-import { ExercisePicker } from './ExercisePicker'
+import { ExercisePickerFeature } from '@modules/exercises/features/exercise-picker.feature'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,13 +25,11 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@core/components/ui/collapsible'
-import type { Exercise } from '@prisma/client'
-import type { CreateExerciseData } from '@modules/routines/types'
 import { cn } from '@core/lib/utils'
 
 // Tipos locales según RFC hasta que `types/index.ts` esté disponible
 interface ExerciseFormItem {
-  exerciseId: number | null
+  exerciseId: string | null
   order: number
   series: number
   repsPerSet: number[]
@@ -43,14 +41,18 @@ interface ExerciseRowProps {
   itemIndex: number
   isFirst: boolean
   isLast: boolean
-  exercises: Exercise[]
-  onExerciseSelect: (exerciseId: number) => void
+  exercises?: never // No longer needed - ExercisePickerFeature fetches its own exercises
+  onExerciseSelect: (exerciseId: string) => void
   onSeriesChange: (series: number) => void
   onRepChange: (setIndex: number, reps: number) => void
   onNotesChange: (notes: string) => void
   onRemove: () => void
   onMove: (direction: 'up' | 'down') => void
-  onCreateExercise: (data: CreateExerciseData) => void
+  onCreateExercise?: (data: {
+    name: string
+    primaryGroup?: string
+    equipment?: string
+  }) => void
 }
 
 export default function ExerciseRow({
@@ -58,7 +60,6 @@ export default function ExerciseRow({
   itemIndex,
   isFirst,
   isLast,
-  exercises,
   onExerciseSelect,
   onSeriesChange,
   onRepChange,
@@ -100,11 +101,20 @@ export default function ExerciseRow({
       <div className='flex items-center gap-2 p-3'>
         <div className='min-w-0 flex-1'>
           <div className='relative'>
-            <ExercisePicker
-              exercises={exercises}
-              value={item.exerciseId}
-              onSelect={onExerciseSelect}
-              onCreate={onCreateExercise}
+            <ExercisePickerFeature
+              selectedId={item.exerciseId ? String(item.exerciseId) : undefined}
+              onSelect={(exercise) => onExerciseSelect(exercise.id)}
+              trigger={
+                <Button
+                  variant='outline'
+                  className='h-11 w-full justify-between'
+                >
+                  {item.exerciseId
+                    ? `Ejercicio #${item.exerciseId}`
+                    : 'Seleccionar ejercicio'}
+                  <MoreVertical className='ml-2 h-4 w-4 shrink-0 opacity-50' />
+                </Button>
+              }
             />
             {item.exerciseId === null && (
               <div className='bg-destructive absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full'>

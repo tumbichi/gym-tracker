@@ -34,23 +34,23 @@ export interface WorkoutSessionContext {
     recoverDraft: () => void
     discardDraft: () => void
     saveDraft: (draft: DraftSession) => void
-    addExercise: (exerciseId: number, targetSeries?: number) => void
-    removeExercise: (exerciseId: number) => void
+    addExercise: (exerciseId: string, targetSeries?: number) => void
+    removeExercise: (exerciseId: string) => void
     moveExercise: (index: number, direction: 'up' | 'down') => void
     updateSet: (
-      exerciseId: number,
+      exerciseId: string,
       setId: string,
       updates: Partial<SetEntry>
     ) => void
-    addSet: (exerciseId: number) => void
-    removeSet: (exerciseId: number, setId: string) => void
+    addSet: (exerciseId: string) => void
+    removeSet: (exerciseId: string, setId: string) => void
     undoLastChange: () => void
     setSessionNotes: (notes: string) => void
 
     // Deprecated actions
     addAvailableExercise: (newExercise: Exercise) => void
-    adjustReps: (exerciseId: number, setId: string, increment: number) => void
-    adjustWeight: (exerciseId: number, setId: string, increment: number) => void
+    adjustReps: (exerciseId: string, setId: string, increment: number) => void
+    adjustWeight: (exerciseId: string, setId: string, increment: number) => void
   }
 }
 export { default as WorkoutSessionProvider } from './WorkoutSessionProvider'

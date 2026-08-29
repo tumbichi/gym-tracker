@@ -18,7 +18,7 @@ import type { CreateExerciseData } from '@modules/routines/types'
 
 // Tipos locales según RFC
 interface ExerciseFormItem {
-  exerciseId: number | null
+  exerciseId: string | null
   order: number
   series: number
   repsPerSet: number[]
@@ -41,7 +41,7 @@ interface DayEditorProps {
   onAddExercise: () => void
   onRemoveExercise: (itemIndex: number) => void
   onMoveExercise: (itemIndex: number, direction: 'up' | 'down') => void
-  onExerciseSelect: (itemIndex: number, exerciseId: number) => void
+  onExerciseSelect: (itemIndex: number, exerciseId: string) => void
   onSeriesChange: (itemIndex: number, series: number) => void
   onRepChange: (itemIndex: number, setIndex: number, reps: number) => void
   onNotesChange: (itemIndex: number, notes: string) => void
@@ -142,7 +142,6 @@ export default function DayEditor({
             itemIndex={itemIndex}
             isFirst={itemIndex === 0}
             isLast={itemIndex === day.items.length - 1}
-            exercises={exercises}
             onExerciseSelect={(exerciseId) =>
               onExerciseSelect(itemIndex, exerciseId)
             }
@@ -153,7 +152,7 @@ export default function DayEditor({
             onNotesChange={(notes) => onNotesChange(itemIndex, notes)}
             onRemove={() => onRemoveExercise(itemIndex)}
             onMove={(direction) => onMoveExercise(itemIndex, direction)}
-            onCreateExercise={(data) => onCreateExercise(itemIndex, data)}
+            // onCreateExercise temporarily not supported by new picker
           />
         ))}
         <Button variant='outline' className='w-full' onClick={onAddExercise}>

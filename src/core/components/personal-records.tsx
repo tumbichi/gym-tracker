@@ -34,7 +34,7 @@ async function getPersonalRecords() {
     },
   })
 
-  const recordsByExercise: { [key: number]: SetEntryWithRelations } = {}
+  const recordsByExercise: { [key: string]: SetEntryWithRelations } = {}
 
   for (const entry of setEntries) {
     if (!recordsByExercise[entry.exerciseId]) {
@@ -63,7 +63,7 @@ async function getPersonalRecords() {
         : false
 
       return {
-        exercise: record.exercise.name,
+        exercise: record.exercise.canonicalName,
         weight: record.weightKg,
         reps: record.repsDone,
         date:

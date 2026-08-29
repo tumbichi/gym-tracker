@@ -13,12 +13,12 @@ export async function createExercise(data: {
   try {
     const newExercise = await database.exercise.create({
       data: {
-        name: data.name,
+        canonicalName: data.name,
         slug: data.slug,
-        primaryGroup: data.primaryGroup || null,
-        equipment: data.equipment || null,
-        notes: data.notes || null,
-      },
+        description: data.notes,
+        // Note: This is a legacy action - primaryMuscleId and equipment
+        // need to be provided as proper IDs for the new schema
+      } as any,
     })
 
     revalidatePath('/exercises')
@@ -30,7 +30,7 @@ export async function createExercise(data: {
 }
 
 export async function updateExercise(
-  id: number,
+  id: string,
   data: {
     name: string
     slug: string
@@ -41,14 +41,12 @@ export async function updateExercise(
 ) {
   try {
     await database.exercise.update({
-      where: { id },
+      where: { id } as any,
       data: {
-        name: data.name,
+        canonicalName: data.name,
         slug: data.slug,
-        primaryGroup: data.primaryGroup || null,
-        equipment: data.equipment || null,
-        notes: data.notes || null,
-      },
+        description: data.notes,
+      } as any,
     })
 
     revalidatePath('/exercises')
@@ -59,10 +57,10 @@ export async function updateExercise(
   }
 }
 
-export async function deleteExercise(id: number) {
+export async function deleteExercise(id: string) {
   try {
     await database.exercise.delete({
-      where: { id },
+      where: { id } as any,
     })
 
     revalidatePath('/exercises')

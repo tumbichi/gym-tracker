@@ -1,4 +1,4 @@
-import { ExerciseForm } from '@core/components/exercise-form'
+import { ExerciseFormFeature } from '@modules/exercises/features/exercise-form.feature'
 import { Button } from '@core/components/ui/button'
 import { Card, CardContent } from '@core/components/ui/card'
 import {
@@ -30,12 +30,12 @@ export type LastSessionData = {
 interface AddExerciseToWorkoutProps {
   onCreateExercise: (newExercise: Exercise) => void
   onAddExercise: (
-    exerciseId: number,
+    exerciseId: string,
     sets: number,
     lastSessionData?: LastSessionData | null
   ) => void
   availableExercises: Exercise[]
-  lastSessionData?: Map<number, LastSessionData>
+  lastSessionData?: Map<string, LastSessionData>
 }
 
 function AddExerciseToWorkout({
@@ -50,7 +50,7 @@ function AddExerciseToWorkout({
   const [search, setSearch] = useState('')
   const [newExerciseSets, setNewExerciseSets] = useState(3)
 
-  const handleAddExercise = (exerciseId: number) => {
+  const handleAddExercise = (exerciseId: string) => {
     try {
       const lastData = lastSessionData.get(exerciseId) ?? null
       onAddExercise(exerciseId, newExerciseSets, lastData)
@@ -62,14 +62,14 @@ function AddExerciseToWorkout({
     }
   }
 
-  const handleExerciseCreated = (newExercise: Exercise) => {
+  const handleExerciseCreated = (newExercise: any) => {
     onCreateExercise(newExercise)
     handleAddExercise(newExercise.id)
     setIsCreateExerciseDialogOpen(false)
   }
 
   const filteredExercises = availableExercises.filter((ex) =>
-    ex.name.toLowerCase().includes(search.toLowerCase())
+    ex.canonicalName.toLowerCase().includes(search.toLowerCase())
   )
 
   return (
@@ -152,13 +152,12 @@ function AddExerciseToWorkout({
                           onClick={() => handleAddExercise(exercise.id)}
                           className='hover:bg-muted/50 w-full p-4 text-left transition-colors'
                         >
-                          <div className='font-medium'>{exercise.name}</div>
-                          {exercise.primaryGroup && (
-                            <div className='text-muted-foreground text-sm'>
-                              {exercise.primaryGroup}
-                              {exercise.equipment && ` • ${exercise.equipment}`}
-                            </div>
-                          )}
+                          <div className='font-medium'>
+                            {exercise.canonicalName}
+                          </div>
+                          <div className='text-muted-foreground text-sm'>
+                            {exercise.exerciseType}
+                          </div>
                         </button>
                       ))}
                     </div>
@@ -185,8 +184,8 @@ function AddExerciseToWorkout({
                                 personal
                               </DialogDescription>
                             </DialogHeader>
-                            <ExerciseForm
-                              exercise={{ name: search }}
+                            <ExerciseFormFeature
+                              exercise={{ name: search } as any}
                               onSuccess={handleExerciseCreated}
                               onFormSubmit={() =>
                                 setIsCreateExerciseDialogOpen(false)

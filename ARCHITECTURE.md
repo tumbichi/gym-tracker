@@ -1,94 +1,94 @@
-# Arquitectura y Convenciones del Proyecto (Next.js)
+# Software Architecture and Project Conventions (Next.js)
 
-Este documento describe la arquitectura de software y la estructura de carpetas utilizada en este proyecto y estandarizada para nuestros desarrollos en Next.js.
+This document describes the software architecture and folder structure used in this project, standardized for our Next.js developments.
 
-El objetivo principal es lograr una base de código **escalable, mantenible y desacoplada**. Para ello, utilizamos una combinación de **Module Pattern** (separación por dominios de negocio) y **Feature Pattern** (una evolución semántica del patrón Container/Presentational).
+The main objective is to achieve a **scalable, maintainable, and decoupled** codebase. To do this, we use a combination of **Module Pattern** (separation by business domains) and **Feature Pattern** (a semantic evolution of the Container/Presentational pattern).
 
-## 🏗️ Conceptos Core
+## 🏗️ Core Concepts
 
-1. **Agnosticismo del Framework:** La lógica de negocio y las vistas principales no deben saber si estamos usando Next.js App Router o Pages Router. El enrutador solo sirve como punto de entrada.
-2. **Module Pattern:** El código se divide verticalmente por "Dominios" o "Módulos" (ej. `Auth`, `Budget`, `Portfolio`). Cada módulo es un micro-ecosistema independiente.
+1. **Framework Agnosticism:** Business logic and main views should not know if we are using Next.js App Router or Pages Router. The router only serves as an entry point.
+2. **Module Pattern:** Code is vertically divided by "Domains" or "Modules" (e.g., `Auth`, `Budget`, `Portfolio`). Each module is an independent micro-ecosystem.
 3. **Feature Pattern (Smart/Dumb):**
-   - **Features (Smart):** Componentes inteligentes que manejan estado, hacen fetching de datos, usan hooks complejos y orquestan la UI.
-   - **Components (Dumb/Presentacionales):** Componentes tontos que solo reciben `props` y emiten eventos (`callbacks`). No tienen idea de dónde vienen los datos.
+   - **Features (Smart):** Intelligent components that handle state, perform data fetching, use complex hooks, and orchestrate the UI.
+   - **Components (Dumb/Presentational):** "Dumb" components that only receive `props` and emit events (`callbacks`). They have no idea where the data comes from.
 
 ---
 
-## 📂 Estructura de Carpetas
+## 📂 Folder Structure
 
-La carpeta principal es `src/` y se divide en tres grandes capas, además de una carpeta externa para tests E2E:
+The main folder is `src/` and is divided into three large layers, plus an external folder for E2E tests:
 
 ```text
 src/
-├── app/          # 1. Capa de Enrutamiento (Next.js)
-├── core/         # 2. Capa Global / Compartida
-└── modules/      # 3. Capa de Dominio / Negocio
+├── app/          # 1. Routing Layer (Next.js)
+├── core/         # 2. Global / Shared Layer
+└── modules/      # 3. Domain / Business Layer
 tests/
-└── e2e/          # Tests end-to-end y flujos críticos (Playwright)
+└── e2e/          # End-to-end tests and critical flows (Playwright)
 ```
 
-### 1. Capa de Enrutamiento (`src/app/`)
+### 1. Routing Layer (`src/app/`)
 
-Es la capa más externa. Pertenece exclusivamente a Next.js.
+This is the outermost layer. It belongs exclusively to Next.js.
 
-- **Responsabilidad:** Definir rutas, layouts, metadatos (SEO) y manejar los endpoints del servidor (Rutas API).
-- **Regla de oro:** Aquí **NO** va lógica de negocio ni UI compleja. Las páginas (`page.tsx`) deben ser lo más finas posible, limitándose a recibir parámetros de la URL y renderizar un `Feature` del módulo correspondiente.
+- **Responsibility:** Define routes, layouts, metadata (SEO), and handle server endpoints (API Routes).
+- **Golden Rule:** **NO** business logic or complex UI goes here. Pages (`page.tsx`) must be as thin as possible, limited to receiving URL parameters and rendering a `Feature` of the corresponding module.
 
-### 2. Capa Compartida (`src/core/`)
+### 2. Shared Layer (`src/core/`)
 
-Contiene todo el código que es **transversal a toda la aplicación** y agnóstico a cualquier dominio de negocio específico.
+Contains all the code that is **transversal to the entire application** and agnostic to any specific business domain.
 
-- `components/`: Componentes UI genéricos (botones, inputs, modales). Usualmente manejados con librerías como shadcn/ui.
-- `hooks/`: Custom hooks globales (ej. `use-mobile`, `use-toast`).
-- `lib/` / `utils/`: Funciones utilitarias genéricas, formateadores de fecha, configuración de librerías.
-- `layout/`: Componentes estructurales de la app (Navbar, Sidebar, Footer).
-- `data/` o `services/`: Clientes de bases de datos o servicios globales (ej. `supabaseClient`).
+- `components/`: Generic UI components (buttons, inputs, modals). Usually managed with libraries like shadcn/ui.
+- `hooks/`: Global custom hooks (e.g., `use-mobile`, `use-toast`).
+- `lib/` / `utils/`: Generic utility functions, date formatters, library configuration.
+- `layout/`: Structural components of the app (Navbar, Sidebar, Footer).
+- `data/` or `services/`: Database clients or global services (e.g., `supabaseClient`).
 
-### 3. Capa de Dominio (`src/modules/`)
+### 3. Domain Layer (`src/modules/`)
 
-Es el corazón de la aplicación. Aquí el código se agrupa por contexto de negocio (ej. `Budget`, `Auth`, `Reports`).
+It is the heart of the application. Here, code is grouped by business context (e.g., `Budget`, `Auth`, `Reports`).
 
-Cada módulo tiene su propia estructura interna encapsulada:
+Each module has its own encapsulated internal structure:
 
 ```text
 src/modules/Budget/
-├── __tests__/      # Tests unitarios y de integración locales
-├── components/     # Dumb components (UI específica del módulo)
-├── features/       # Smart components (Orquestadores)
-├── hooks/          # Lógica de React específica del módulo
-├── services/       # Comunicación con APIs externas o base de datos
-├── types/          # Interfaces y tipos de TypeScript
-└── utils/          # Funciones auxiliares del módulo
+├── __tests__/      # Local unit and integration tests
+├── components/     # Dumb components (module-specific UI)
+├── features/       # Smart components (Orchestrators)
+├── hooks/          # Module-specific React logic
+├── services/       # Communication with external APIs or database
+├── types/          # TypeScript interfaces and types
+└── utils/          # Module helper functions
 ```
 
-#### Anatomía de un Módulo:
+#### Anatomy of a Module:
 
 - **`features/` (Smart Components):**
-  Son los puntos de entrada para las páginas. Un feature (ej. `BudgetBoard.tsx`) se encarga de llamar a los hooks de fetching (`useBudgetData`), manejar estados de carga/error y pasar los datos limpios a los componentes hijos.
+  They are the entry points for the pages. A feature (e.g., `BudgetBoard.tsx`) is in charge of calling the fetching hooks (`useBudgetData`), handling loading/error states, and passing clean data to the child components.
 - **`components/` (Dumb Components):**
-  Componentes puramente visuales (ej. `ExpenseItem.tsx`, `CategoryBadge.tsx`). Reciben `data` e invocan funciones como `onDelete`, `onUpdate`. Son altamente testeables y predecibles.
+  Purely visual components (e.g., `ExpenseItem.tsx`, `CategoryBadge.tsx`). They receive `data` and invoke functions like `onDelete`, `onUpdate`. They are highly testable and predictable.
 - **`services/`:**
-  Funciones asíncronas que se comunican con el backend/BFF (`api/`) o servicios externos (Supabase, Firebase, etc.). Ningún componente debería hacer un `fetch` directo sin pasar por un service.
+  Asynchronous functions that communicate with the backend/BFF (`api/`) or services (Supabase, Firebase, etc.). No component should make a direct `fetch` without going through a service.
 - **`hooks/`:**
-  Si un `Feature` tiene mucha lógica de estado o requiere procesar múltiples llamadas a servicios, esa lógica se extrae a un custom hook dentro del módulo (ej. `useExpenseCrud.ts`).
+  If a `Feature` has a lot of state logic or requires processing multiple service calls, that logic is extracted to a custom hook within the module (e.g., `useExpenseCrud.ts`).
 
 ---
 
-## 🔄 Flujo de Datos y Reglas de Dependencia
+## 🔄 Data Flow and Dependency Rules
 
-Para mantener la arquitectura limpia, existen reglas estrictas sobre qué puede importar a qué:
+To keep the architecture clean, there are strict rules about what can import what:
 
-1. **Regla de la Página:** Los archivos de `src/app` **solo** pueden importar desde `features/` (de los módulos) o layouts de `core/`.
-2. **Regla de los Módulos:**
-   - Un módulo no debería importar cosas de la carpeta interna de otro módulo. Si dos módulos necesitan compartir algo, ese algo probablemente pertenece a `src/core/`.
-   - Si un módulo necesita utilizar un "Feature" de otro módulo, debe importarlo por su interfaz pública (el archivo Feature mismo), pero evitando el acoplamiento circular.
-3. **Regla del Feature:** Un `Feature` importa `components`, `hooks` y `services` de su propio módulo, y componentes base de `core/`.
-4. **Regla del Componente (Dumb):** Los `components/` dentro de un módulo **NO** pueden importar de `features/`, `hooks/` o `services/`. Son componentes puros.
+1. **Page Rule:** Files in `src/app` can **only** import from `features/` (from modules) or layouts from `core/`.
+2. **Module Rule:**
+   - A module should not import things from the internal folder of another module. If two modules need to share something, that something probably belongs in `src/core/`.
+   - If a module needs to use a "Feature" from another module, it must import it by its public interface (the Feature file itself), but avoiding circular coupling.
+3. **Feature Rule:** A `Feature` imports `components`, `hooks`, and `services` from its own module, and base components from `core/`.
+4. **Component Rule (Dumb):** `components/` within a module **CANNOT** import from `features/`, `hooks/`, or `services/`. They are pure components.
 
-## 💡 Ejemplo de Flujo:
+## 💡 Flow Example:
 
-1. El usuario entra a `/admin/budgets`.
-2. `src/app/admin/budgets/page.tsx` renderiza `<BudgetBoard />`.
-3. `BudgetBoard` (en `src/modules/Budget/features/`) llama al hook `useBudgetData`.
-4. `useBudgetData` interactúa con `expenses.services.ts`.
-5. Una vez que la data llega, `BudgetBoard` renderiza componentes tontos como `<ExpensesBoard expenses={data} />` e `<ExpenseItem />` pasándole los callbacks necesarios.
+1. The user enters `/admin/budgets`.
+2. `src/app/admin/budgets/page.tsx` renders `<BudgetBoard />`.
+3. `BudgetBoard` (in `src/modules/Budget/features/`) calls the `useBudgetData` hook.
+4. `useBudgetData` interacts with `expenses.services.ts`.
+5. Once the data arrives, `BudgetBoard` renders dumb components like `<ExpensesBoard expenses={data} />` and `<ExpenseItem />` passing the necessary callbacks.

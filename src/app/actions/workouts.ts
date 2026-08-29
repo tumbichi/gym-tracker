@@ -9,7 +9,7 @@ export async function createWorkoutSession(data: {
   date: Date
   notes?: string
   sets: Array<{
-    exerciseId: number
+    exerciseId: string
     setNumber: number
     repsDone: number
     weightKg: number
@@ -19,7 +19,7 @@ export async function createWorkoutSession(data: {
 }) {
   try {
     // Group sets by exerciseId to create WorkoutExercises
-    const exerciseMap = new Map<number, typeof data.sets>()
+    const exerciseMap = new Map<string, typeof data.sets>()
     for (const set of data.sets) {
       const existing = exerciseMap.get(set.exerciseId) || []
       existing.push(set)

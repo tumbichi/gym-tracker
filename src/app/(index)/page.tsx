@@ -179,7 +179,7 @@ export default async function Dashboard() {
                         className='flex items-center justify-between'
                       >
                         <span className='text-sm font-medium'>
-                          {item.exercise?.name}
+                          {item.exercise?.canonicalName}
                         </span>
                         <Badge variant='secondary'>
                           {item.series} x {item.reps}
